@@ -1,0 +1,10 @@
+name = "PrecompileSignatures"
+uuid = "91cefc8d-f054-46dc-8f8c-26e11d7c5411"
+authors = ["Rik Huijzer <t.h.huijzer@rug.nl>"]
+version = "1.0.0"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
