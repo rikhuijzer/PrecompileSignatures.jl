@@ -4,14 +4,24 @@ using Documenter.Utilities: submodules
 
 export precompile_signatures
 
-is_function(x) = x isa Function
+function _is_macro(f::Function)
+    text = sprint(show, MIME"text/plain"(), f)
+    return contains(text, "macro with")
+end
+
+_is_function(x) = x isa Function && !_is_macro(x)
+
+_in_module(f::Function, M::Module) = typeof(f).name.module == M
+_in_module(M::Module) = f -> _in_module(f, M)
 
 "Return all functions defined in module `M`."
-function _module_functions(M::Module)::Vector{Function}
+function _module_functions(M::Module) # ::Vector{Function}
     allnames = names(M; all=true)
     filter!(x -> !(x in [:eval, :include]), allnames)
     properties = getproperty.(Ref(M), allnames)
-    functions = filter(is_function, properties)
+    functions = filter(_is_function, properties)
+    # foreach(f -> (@show methods(f)), functions)
+    filter!(_in_module(M), functions)
     return functions
 end
 
