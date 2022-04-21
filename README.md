@@ -17,7 +17,7 @@ this package will generate
 precompile(Tuple{typeof(f), Int, Float64})
 ```
 
-This package will also create that `precompile` directive for `(Int, Float64)` from the following method definitions:
+This package will also create that `precompile` directive for `(Int, Float64)` and `(Float32, Float64)` from the following method definitions:
 
 ```julia
 function f(x, y)
