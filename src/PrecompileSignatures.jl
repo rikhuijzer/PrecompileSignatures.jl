@@ -20,8 +20,8 @@ function _signatures(f::Function)::Vector{DataType}
     return [m.sig for m in methods(f)]
 end
 
-_all_concrete(type::DataType) = isconcretetype(type)
-_all_concrete(types::Vector{DataType}) = isconcretetype.(types)
+_all_concrete(type::DataType)::Bool = isconcretetype(type)
+_all_concrete(types)::Bool = all(isconcretetype.(types))
 
 _pairs(@nospecialize(args...)) = vcat(Base.product(args...)...)
 
@@ -32,15 +32,15 @@ end
 _unpack_union!(x; out=DataType[]) = push!(out, x)
 
 """
-    _split_union(sig::DataType)
+    _split_union(sig::DataType) -> Set{Tuple}
 
-Return multiple `DataType`s containing concrete types only for each combination of concrete types that can be found.
+Return multiple `DataType`s containing only concrete types for each combination of concrete types that can be found.
 
 # Example
 ```
 julia> f(x, y) = 3;
 
-julia> PrecompileSignatures._split_union(Tuple{f, Union{Int, Float64}, Union{Float32, String}})
+julia> PrecompileSignatures._split_union(Tuple{f, Union{Int, AbstractString}, Union{Float32, String}})
 Vector
   Tuple{f, Int, Float32}
   Tuple{f, Int, String}
@@ -48,10 +48,11 @@ Vector
   Tuple{f, Float64, String}
 ```
 """
-function _split_union(sig::DataType)
+function _split_union(sig::DataType)::Set{Tuple}
     method, types... = sig.parameters
-    @show types
-    pairs = _pairs(types)
+    pairs = _pairs(_unpack_union!.(types)...)
+    filter!(_all_concrete, pairs)
+    return Set(pairs)
 end
 
 """
