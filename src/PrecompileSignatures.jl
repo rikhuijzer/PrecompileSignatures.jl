@@ -34,19 +34,7 @@ _unpack_union!(x; out=DataType[]) = push!(out, x)
 """
     _split_union(sig::DataType) -> Set{Tuple}
 
-Return multiple `DataType`s containing only concrete types for each combination of concrete types that can be found.
-
-# Example
-```
-julia> f(x, y) = 3;
-
-julia> PrecompileSignatures._split_union(Tuple{f, Union{Int, AbstractString}, Union{Float32, String}})
-Vector
-  Tuple{f, Int, Float32}
-  Tuple{f, Int, String}
-  Tuple{f, Float64, Float32}
-  Tuple{f, Float64, String}
-```
+Return multiple `Tuple`s containing only concrete types for each combination of concrete types that can be found.
 """
 function _split_union(sig::DataType)::Set{Tuple}
     method, types... = sig.parameters
@@ -59,15 +47,14 @@ end
 Return precompile directives datatypes for signature `sig`.
 Each returned `DataType` is ready to be passed to `precompile`.
 """
-function _directives_datatypes(sig::DataType, split_union::Bool)
+function _directives_datatypes(sig::DataType, split_union::Bool)::Vector{DataType}
     method, types... = sig.parameters
-    _all_concrete(types) && return sig
-    out = DataType[]
-    if split_union
-        out = _split_union(sig)
-    end
-    method
-    types
+    _all_concrete(types) && return [sig]
+    concrete_argument_types = split_union ?
+        _split_union(sig) :
+        Tuple(types...)
+    @show concrete_argument_types
+    return [Tuple{method, types...} for types in concrete_argument_types]
 end
 
 const SPLIT_UNION_DEFAULT = true
