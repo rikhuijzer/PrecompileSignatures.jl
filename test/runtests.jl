@@ -1,3 +1,4 @@
+using PrecompileSignatures
 using Test
 
 module M
