@@ -14,17 +14,19 @@ end
 this package will generate
 
 ```julia
-precompile(f, (Int, Float64))
+precompile(Tuple{typeof(f), Int, Float64})
 ```
 
-To not restrict methods too much, this package will also create that `precompile` directive for the following signature:
+This package will also create that `precompile` directive for `(Int, Float64)` from the following method definitions:
 
 ```julia
 function f(x, y)
     return x
 end
-f(x::Union{Float64,Float32}, y::Float64}) = f(x)
+f(x::Union{Int,Float32}, y::Float64}) = f(x)
 ```
+
+This splitting of union types can be disabled by setting `split_union=false`.
 
 **Note**
 
@@ -36,7 +38,7 @@ function f(x::Union{Float64,Float32,Any}, y::Float64})
 end
 ```
 
-doesn't have the same effect because the signature is simplified to `Any` by Julia's internals:
+doesn't generate `precompile` directives for `Float64` and `Float32` on `x` because the signature is simplified to `Any` by Julia's internals:
 
 ```julia
 julia> z(x::Union{Int,Any}) = x;
