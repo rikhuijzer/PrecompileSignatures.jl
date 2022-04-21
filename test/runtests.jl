@@ -5,7 +5,8 @@ const P = PrecompileSignatures
 
 module M
     a(x::Int) = x
-    b(x::Union{Int,Any}) = x
+    b(x::Any) = x
+    b(x::Union{Float64,Float32}) = b(x)
 end
 
 @test P._module_functions(M) == [M.a, M.b]
@@ -28,11 +29,15 @@ expected = Set([
 ])
 @test PrecompileSignatures._split_union(sig) == expected
 
-@test P._directives_datatypes(sig, true) == [
-    Tuple{Main.M.a, Int64, Float32},
-    Tuple{Main.M.a, Int64, String}
-]
+@test Set(P._directives_datatypes(sig, true)) == Set([
+    Tuple{M.a, Int64, Float32},
+    Tuple{M.a, Int64, String}
+])
+@test isempty(P._directives_datatypes(sig, false))
 @test P._directives_datatypes(Tuple{M.a, Int}, true) == [Tuple{M.a, Int}]
 
-directives = precompile_signatures(M)
-
+@test Set(precompile_signatures(M)) == Set([
+    Tuple{typeof(Main.M.a), Int64},
+    Tuple{typeof(Main.M.b), Float64},
+    Tuple{typeof(Main.M.b), Float32}
+])

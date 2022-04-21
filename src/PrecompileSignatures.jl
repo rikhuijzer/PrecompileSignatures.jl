@@ -15,11 +15,6 @@ function _module_functions(M::Module)::Vector{Function}
     return functions
 end
 
-"Return all method signatures for function `f`."
-function _signatures(f::Function)::Vector{DataType}
-    return [m.sig for m in methods(f)]
-end
-
 _all_concrete(type::DataType)::Bool = isconcretetype(type)
 _all_concrete(types)::Bool = all(isconcretetype.(types))
 
@@ -50,11 +45,17 @@ Each returned `DataType` is ready to be passed to `precompile`.
 function _directives_datatypes(sig::DataType, split_union::Bool)::Vector{DataType}
     method, types... = sig.parameters
     _all_concrete(types) && return [sig]
-    concrete_argument_types = split_union ?
-        _split_union(sig) :
-        Tuple(types...)
-    @show concrete_argument_types
+    concrete_argument_types = if split_union
+        _split_union(sig)
+    else
+        return DataType[]
+    end
     return [Tuple{method, types...} for types in concrete_argument_types]
+end
+
+"Return all method signatures for function `f`."
+function _signatures(f::Function)::Vector{DataType}
+    return [m.sig for m in methods(f)]
 end
 
 const SPLIT_UNION_DEFAULT = true
@@ -63,7 +64,7 @@ const SPLIT_UNION_DEFAULT = true
     precompile_signatures(
         M::Module;
         split_union::Bool=$SPLIT_UNION_DEFAULT
-    ) -> Vector{Expr}
+    ) -> Vector{DataType}
 
 Return a vector of precompile directives for module `M`.
 
@@ -76,9 +77,11 @@ Keyword arguments:
 function precompile_signatures(
         M::Module;
         split_union::Bool=SPLIT_UNION_DEFAULT
-    )
+    )::Vector{DataType}
     functions = _module_functions(M)
-    signatures = _signatures.(functions)
+    signatures = Iterators.flatten(_signatures.(functions))
+    directives = _directives_datatypes.(signatures, split_union)
+    return collect(Iterators.flatten(directives))
 end
 
 end # module
