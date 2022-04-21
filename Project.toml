@@ -11,7 +11,8 @@ Documenter = "0.27"
 julia = "1.6"
 
 [extras]
+Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Pluto", "Test"]

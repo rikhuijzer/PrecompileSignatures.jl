@@ -1,3 +1,4 @@
+using Pluto: PlutoRunner
 using PrecompileSignatures
 using Test
 
@@ -7,9 +8,10 @@ module M
     a(x::Int) = x
     b(x::Any) = x
     b(x::Union{Float64,Float32}) = b(x)
+    c(x::T) where {T<:AbstractString} = x
 end
 
-@test P._module_functions(M) == [M.a, M.b]
+@test P._module_functions(M) == [M.a, M.b, M.c]
 
 @test P._unpack_union!(Union{Float64, Int64, String, Symbol}) == [Float64, Int64, String, Symbol]
 

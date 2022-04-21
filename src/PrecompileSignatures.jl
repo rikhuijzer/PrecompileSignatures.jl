@@ -55,7 +55,13 @@ end
 
 "Return all method signatures for function `f`."
 function _signatures(f::Function)::Vector{DataType}
-    return [m.sig for m in methods(f)]
+    sigs = map(methods(f)) do method
+        sig = method.sig
+        # Ignoring parametric types for now.
+        sig isa UnionAll ? nothing : sig
+    end
+    filter!(!isnothing, sigs)
+    return sigs
 end
 
 const SPLIT_UNION_DEFAULT = true
