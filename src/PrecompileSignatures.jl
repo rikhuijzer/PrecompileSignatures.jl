@@ -2,7 +2,7 @@ module PrecompileSignatures
 
 using Documenter.Utilities: submodules
 
-export precompile_signatures
+export precompilables
 
 function _is_macro(f::Function)
     text = sprint(show, MIME"text/plain"(), f)
@@ -30,11 +30,13 @@ _all_concrete(types)::Bool = all(isconcretetype.(types))
 
 _pairs(@nospecialize(args...)) = vcat(Base.product(args...)...)
 
-function _unpack_union!(x::Union; out=DataType[])
+function _unpack_union!(x::Union; out=[])
     push!(out, x.a)
     return _unpack_union!(x.b; out)
 end
-_unpack_union!(x; out=DataType[]) = push!(out, x)
+function _unpack_union!(x; out=[])
+    push!(out, x)
+end
 
 """
     _split_union(sig::DataType) -> Set{Tuple}
@@ -77,7 +79,7 @@ end
 const SPLIT_UNION_DEFAULT = true
 
 """
-    precompile_signatures(
+    precompilables(
         M::Module;
         split_union::Bool=$SPLIT_UNION_DEFAULT
     ) -> Vector{DataType}
@@ -90,7 +92,7 @@ Keyword arguments:
     Whether to split union types.
     For example, whether to generate two precompile directives when the type is `Union{Int,Float64}.
 """
-function precompile_signatures(
+function precompilables(
         M::Module;
         split_union::Bool=SPLIT_UNION_DEFAULT
     )::Vector{DataType}

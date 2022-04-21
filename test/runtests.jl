@@ -38,8 +38,12 @@ expected = Set([
 @test isempty(P._directives_datatypes(sig, false))
 @test P._directives_datatypes(Tuple{M.a, Int}, true) == [Tuple{M.a, Int}]
 
-@test Set(precompile_signatures(M)) == Set([
+@test Set(precompilables(M)) == Set([
     Tuple{typeof(Main.M.a), Int64},
     Tuple{typeof(Main.M.b), Float64},
     Tuple{typeof(Main.M.b), Float32}
 ])
+
+types = precompilables(PlutoRunner)
+@test 40 < length(types)
+@test all(precompile.(types))
