@@ -22,14 +22,14 @@ expected = Set([
           (Float64, Float32),
           (Float64, String)
       ])
-@test PrecompileSignatures._split_union(sig) == expected
+@test PrecompileSignatures._split_unions(sig) == expected
 
 sig = Tuple{M.a, Union{Int, AbstractString}, Union{Float32, String}}
 expected = Set([
     (Int64, Float32),
     (Int64, String)
 ])
-@test PrecompileSignatures._split_union(sig) == expected
+@test PrecompileSignatures._split_unions(sig) == expected
 
 @test Set(P._directives_datatypes(sig, true)) == Set([
     Tuple{M.a, Int64, Float32},
