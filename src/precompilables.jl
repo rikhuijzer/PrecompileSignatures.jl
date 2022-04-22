@@ -12,15 +12,14 @@ _in_module(M::Module) = f -> _in_module(f, M)
 function _module_functions(M::Module) # ::Vector{Function}
     allnames = names(M; all=true)
     filter!(x -> !(x in [:eval, :include]), allnames)
-    properties = getproperty.(Ref(M), allnames)
+    properties = [getproperty(M, name) for name in allnames]
     functions = filter(_is_function, properties)
-    # foreach(f -> (@show methods(f)), functions)
     filter!(_in_module(M), functions)
     return functions
 end
 
 _all_concrete(type::DataType)::Bool = isconcretetype(type)
-_all_concrete(types)::Bool = all(isconcretetype.(types))
+_all_concrete(types)::Bool = all(map(isconcretetype, types))
 
 _pairs(@nospecialize(args...)) = vcat(Base.product(args...)...)
 
@@ -39,7 +38,7 @@ Return multiple `Tuple`s containing only concrete types for each combination of 
 """
 function _split_unions(sig::DataType)::Set{Tuple}
     method, types... = sig.parameters
-    pairs = _pairs(_unpack_union!.(types)...)
+    pairs = _pairs(map(_unpack_union!, types)...)
     filter!(_all_concrete, pairs)
     return Set(pairs)
 end
@@ -90,8 +89,8 @@ function precompilables(
     )::Vector{DataType}
     types = map(M) do mod
         functions = _module_functions(mod)
-        signatures = Iterators.flatten(_signatures.(functions))
-        directives = _directives_datatypes.(signatures, split_unions)
+        signatures = Iterators.flatten(map(_signatures, functions))
+        directives = [_directives_datatypes(sig, split_unions) for sig in signatures]
         return collect(Iterators.flatten(directives))
     end
     return reduce(vcat, types)
