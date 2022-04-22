@@ -20,7 +20,6 @@ function _precompile_directives()
 end
 
 if ccall(:jl_generating_output, Cint, ()) == 1
-    @info "Generating and calling extra precompile directives"
     precompile_signatures(PrecompileSignatures)
 end
 

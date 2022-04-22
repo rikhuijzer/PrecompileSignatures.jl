@@ -16,10 +16,9 @@ pkg> activate Foo
 Next, add the following somewhere in your code:
 
 ```julia
-using PrecompileSignatures
+using PrecompileSignatures: precompile_signatures
 
 if ccall(:jl_generating_output, Cint, ()) == 1
-    @info "Generating and calling extra precompile directives"
     precompile_signatures(Foo)
 end
 ```
