@@ -155,12 +155,10 @@ Do not attempt to be clever and `eval` the directives directly, that will cause 
 """
 function precompile_directives(M::Module)::String
     dir = get_scratch!(M, string(M))
-    if !isdir(dir) || _is_precompile_stage()
-        mkpath(dir)
-        path = joinpath(dir, "precompile.jl")
-        types = precompilables(M)
-        write_directives(path, types)
-    end
+    mkpath(dir)
+    path = joinpath(dir, "precompile.jl")
+    types = precompilables(M)
+    write_directives(path, types)
     return path
 end
 

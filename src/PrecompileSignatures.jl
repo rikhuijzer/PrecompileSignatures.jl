@@ -8,6 +8,8 @@ export precompilables, precompile_directives, write_directives
 include("precompilables.jl")
 
 # Include generated `precompile` directives.
-include(precompile_directives(PrecompileSignatures))
+if ccall(:jl_generating_output, Cint, ()) == 1
+    include(precompile_directives(PrecompileSignatures))
+end
 
 end # module
