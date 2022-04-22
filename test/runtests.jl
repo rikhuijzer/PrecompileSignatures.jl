@@ -47,3 +47,10 @@ expected = Set([
 types = precompilables(PlutoRunner)
 @test 40 < length(types)
 @test all(precompile.(types))
+
+mktemp() do path, io
+    types = precompilables(M)
+    text = write_directives(path, types)
+    @test contains(text, "machine-generated")
+    @test contains(text, "precompile(Tuple{typeof(Main.M.a), Int64})")
+end

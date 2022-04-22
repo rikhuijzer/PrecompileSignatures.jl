@@ -2,104 +2,22 @@ module PrecompileSignatures
 
 using Documenter.Utilities: submodules
 
-export precompilables
+export precompilables, write_directives
 
-function _is_macro(f::Function)
-    text = sprint(show, MIME"text/plain"(), f)
-    return contains(text, "macro with")
-end
-
-_is_function(x) = x isa Function && !_is_macro(x)
-
-_in_module(f::Function, M::Module) = typeof(f).name.module == M
-_in_module(M::Module) = f -> _in_module(f, M)
-
-"Return all functions defined in module `M`."
-function _module_functions(M::Module) # ::Vector{Function}
-    allnames = names(M; all=true)
-    filter!(x -> !(x in [:eval, :include]), allnames)
-    properties = getproperty.(Ref(M), allnames)
-    functions = filter(_is_function, properties)
-    # foreach(f -> (@show methods(f)), functions)
-    filter!(_in_module(M), functions)
-    return functions
-end
-
-_all_concrete(type::DataType)::Bool = isconcretetype(type)
-_all_concrete(types)::Bool = all(isconcretetype.(types))
-
-_pairs(@nospecialize(args...)) = vcat(Base.product(args...)...)
-
-function _unpack_union!(x::Union; out=[])
-    push!(out, x.a)
-    return _unpack_union!(x.b; out)
-end
-function _unpack_union!(x; out=[])
-    push!(out, x)
-end
+include("precompilables.jl")
 
 """
-    _split_union(sig::DataType) -> Set{Tuple}
-
-Return multiple `Tuple`s containing only concrete types for each combination of concrete types that can be found.
+Returns the path to some extra precompile_directives.
+This code runs during the precompilation phase.
 """
-function _split_union(sig::DataType)::Set{Tuple}
-    method, types... = sig.parameters
-    pairs = _pairs(_unpack_union!.(types)...)
-    filter!(_all_concrete, pairs)
-    return Set(pairs)
-end
-
-"""
-Return precompile directives datatypes for signature `sig`.
-Each returned `DataType` is ready to be passed to `precompile`.
-"""
-function _directives_datatypes(sig::DataType, split_union::Bool)::Vector{DataType}
-    method, types... = sig.parameters
-    _all_concrete(types) && return [sig]
-    concrete_argument_types = if split_union
-        _split_union(sig)
-    else
-        return DataType[]
+function _precompile_directives()
+    path = joinpath(pkgdir(PrecompileSignatures), "src", "precompile.jl")
+    if true # !isfile(path)
+        types = precompilables(PrecompileSignatures)
+        write_directives(path, types)
     end
-    return [Tuple{method, types...} for types in concrete_argument_types]
+    return path
 end
-
-"Return all method signatures for function `f`."
-function _signatures(f::Function)::Vector{DataType}
-    sigs = map(methods(f)) do method
-        sig = method.sig
-        # Ignoring parametric types for now.
-        sig isa UnionAll ? nothing : sig
-    end
-    filter!(!isnothing, sigs)
-    return sigs
-end
-
-const SPLIT_UNION_DEFAULT = true
-
-"""
-    precompilables(
-        M::Module;
-        split_union::Bool=$SPLIT_UNION_DEFAULT
-    ) -> Vector{DataType}
-
-Return a vector of precompile directives for module `M`.
-
-Keyword arguments:
-
-- `split_union`:
-    Whether to split union types.
-    For example, whether to generate two precompile directives when the type is `Union{Int,Float64}.
-"""
-function precompilables(
-        M::Module;
-        split_union::Bool=SPLIT_UNION_DEFAULT
-    )::Vector{DataType}
-    functions = _module_functions(M)
-    signatures = Iterators.flatten(_signatures.(functions))
-    directives = _directives_datatypes.(signatures, split_union)
-    return collect(Iterators.flatten(directives))
-end
+include(_precompile_directives())
 
 end # module
