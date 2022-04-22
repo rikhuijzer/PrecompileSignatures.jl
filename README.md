@@ -3,7 +3,33 @@
 This package reads all method signatures in a package and generates precompile directives for any concrete signature that it can find.
 This is a brute force way to reduce the time to first X.
 
-In essence, it allows package maintainers to generate precompile directives via specifying concrete argument types in method signatures.
+## Usage
+
+Add this package to your package, say, `Foo`:
+
+```julia
+pkg> activate Foo
+
+pkg> add PrecompileSignatures
+```
+
+Next, add the following somewhere in your code:
+
+```julia
+using PrecompileSignatures
+
+if ccall(:jl_generating_output, Cint, ()) == 1
+    @info "Generating and calling extra precompile directives"
+    precompile_signatures(Foo)
+end
+```
+
+This will call `precompile_signatures` during the precompilation phase.
+Inside `precompile_signatures`, `precompile` statements are generated and evaluated.
+
+## How does this package work?
+
+This package finds precompile directives by searching for concrete types in method signatures.
 For example, for the function
 ```julia
 function f(x::Int, y::Float64)
@@ -17,7 +43,7 @@ this package will generate
 precompile(Tuple{typeof(f), Int, Float64})
 ```
 
-This package will also create that `precompile` directive for `(Int, Float64)` and `(Float32, Float64)` from the following method definitions:
+Also, this package will create `precompile` directives for `(Int, Float64)` and `(Float32, Float64)` from the following method definitions:
 
 ```julia
 function f(x, y)

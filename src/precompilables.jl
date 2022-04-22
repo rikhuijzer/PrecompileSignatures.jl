@@ -74,15 +74,15 @@ function _signatures(f::Function)::Vector{DataType}
 end
 
 const SUBMODULES_DEFAULT = true
-const SPLIT_UNION_DEFAULT = true
+const SPLIT_UNIONS_DEFAULT = true
 
 function _all_submodules(M::Vector{Module})::Vector{Module}
     return collect(Iterators.flatten(map(submodules, M)))
 end
 
 """
-    precompilables(M::Vector{Module}; split_unions::Bool=$SPLIT_UNION_DEFAULT) -> Vector{DataType}
-    precompilables(M::Module; split_unions::Bool=$SPLIT_UNION_DEFAULT) -> Vector{DataType}
+    precompilables(M::Vector{Module}; split_unions::Bool=$SPLIT_UNIONS_DEFAULT) -> Vector{DataType}
+    precompilables(M::Module; split_unions::Bool=$SPLIT_UNIONS_DEFAULT) -> Vector{DataType}
 
 Return a vector of precompile directives for module `M`.
 
@@ -95,7 +95,7 @@ Keyword arguments:
 function precompilables(
         M::Vector{Module};
         submodules::Bool=SUBMODULES_DEFAULT,
-        split_unions::Bool=SPLIT_UNION_DEFAULT
+        split_unions::Bool=SPLIT_UNIONS_DEFAULT
     )::Vector{DataType}
     if submodules
         M = _all_submodules(M)
@@ -112,7 +112,7 @@ end
 function precompilables(
         M::Module;
         submodules::Bool=SUBMODULES_DEFAULT,
-        split_unions::Bool=SPLIT_UNION_DEFAULT
+        split_unions::Bool=SPLIT_UNIONS_DEFAULT
     )::Vector{DataType}
     precompilables([M]; submodules, split_unions)
 end
@@ -123,7 +123,32 @@ const DEFAULT_WRITE_HEADER = """
     """
 
 """
-    write_directives(path, M::AbstractVector{Module}; split_unions::Bool=$SPLIT_UNION_DEFAULT, header=\$DEFAULT_WRITE_HEADER)
+    precompile_signatures(M::Vector{Module}, submodules::Bool=$SUBMODULES_DEFAULT, split_unions::Bool=$SPLIT_UNIONS_DEFAULT)
+    precompile_signatures(M::Module, submodules::Bool=$SUBMODULES_DEFAULT, split_unions::Bool=$SPLIT_UNIONS_DEFAULT)
+
+Find all precompilable types via `precompilables` and call `precompile` on the types.
+"""
+function precompile_signatures(
+        M::Vector{Module};
+        submodules::Bool=SUBMODULES_DEFAULT,
+        split_unions::Bool=SPLIT_UNIONS_DEFAULT
+    )
+    types = precompilables(M; submodules, split_unions)
+    expressions = [:(precompile($t)) for t in precompilables(M)]
+    evaluated = map(eval, expressions)
+    return all(evaluated)
+end
+
+function precompile_signatures(
+        M::Module;
+        submodules::Bool=SUBMODULES_DEFAULT,
+        split_unions=SPLIT_UNIONS_DEFAULT
+    )
+    return precompile_signatures([M]; submodules, split_unions)
+end
+
+"""
+    write_directives(path, M::AbstractVector{Module}; split_unions::Bool=$SPLIT_UNIONS_DEFAULT, header=\$DEFAULT_WRITE_HEADER)
     write_directives(path, types::Vector{DataType}; header=\$DEFAULT_WRITE_HEADER)
 
 Write precompile directives to file.
@@ -137,7 +162,7 @@ end
 function write_directives(
         path,
         M::AbstractVector{Module};
-        split_unions::Bool=SPLIT_UNION_DEFAULT,
+        split_unions::Bool=SPLIT_UNIONS_DEFAULT,
         header=DEFAULT_WRITE_HEADER
     )
     types = precompilables(M; split_unions)

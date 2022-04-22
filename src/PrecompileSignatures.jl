@@ -2,7 +2,7 @@ module PrecompileSignatures
 
 using Documenter.Utilities: submodules
 
-export precompilables, write_directives
+export precompilables, precompile_signatures, write_directives
 
 include("precompilables.jl")
 
@@ -18,8 +18,10 @@ function _precompile_directives()
     end
     return path
 end
-include(_precompile_directives())
 
-@show ccall(:jl_generating_output, Cint, ())
+if ccall(:jl_generating_output, Cint, ()) == 1
+    @info "Generating and calling extra precompile directives"
+    precompile_signatures(PrecompileSignatures)
+end
 
 end # module
