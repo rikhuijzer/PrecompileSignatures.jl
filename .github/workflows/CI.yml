@@ -18,7 +18,7 @@ jobs:
         version:
           - '1.6'
           - '1' # Latest stable release.
-          - '^1.8.0-0'
+          - 'nightly'
         os:
           - ubuntu-latest
     steps:
