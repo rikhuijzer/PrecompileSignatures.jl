@@ -60,3 +60,7 @@ This takes about 20 minutes.
 Conversely, this package takes about 20 seconds to generate directives for all modules in Pluto.
 In practise, this means that this package can re-generate the directives with each start of the package whereas SnoopCompile's directives have to be cached, that is, stored in the repository.
 
+## Further notes
+
+Unfortunately, in many cases, inference will run all over again even after some method has been "precompiled".
+For more information about this, see https://github.com/JuliaLang/julia/issues/38951#issuecomment-749153888 and the related discussions.

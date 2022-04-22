@@ -20,4 +20,6 @@ function _precompile_directives()
 end
 include(_precompile_directives())
 
+@show ccall(:jl_generating_output, Cint, ())
+
 end # module
