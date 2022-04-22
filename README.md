@@ -64,3 +64,5 @@ In practise, this means that this package can re-generate the directives with ea
 
 Unfortunately, in many cases, inference will run all over again even after some method has been "precompiled".
 For more information about this, see https://github.com/JuliaLang/julia/issues/38951#issuecomment-749153888 and the related discussions.
+This aspect is a work-in-progress.
+For example, a recent PR that got merged related to this is "Cache external CodeInstances" (https://github.com/JuliaLang/julia/pull/43990).
