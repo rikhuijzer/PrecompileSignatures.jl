@@ -1,4 +1,4 @@
-src/precompile.jl
+src/_precompile.jl
 
 docs/build/
 docs/site/

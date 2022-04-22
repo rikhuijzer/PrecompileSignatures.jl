@@ -123,31 +123,6 @@ const DEFAULT_WRITE_HEADER = """
     """
 
 """
-    precompile_signatures(M::Vector{Module}, submodules::Bool=$SUBMODULES_DEFAULT, split_unions::Bool=$SPLIT_UNIONS_DEFAULT)
-    precompile_signatures(M::Module, submodules::Bool=$SUBMODULES_DEFAULT, split_unions::Bool=$SPLIT_UNIONS_DEFAULT)
-
-Find all precompilable types via `precompilables` and call `precompile` on the types.
-"""
-function precompile_signatures(
-        M::Vector{Module};
-        submodules::Bool=SUBMODULES_DEFAULT,
-        split_unions::Bool=SPLIT_UNIONS_DEFAULT
-    )
-    types = precompilables(M; submodules, split_unions)
-    expressions = [:(precompile($t)) for t in precompilables(M)]
-    evaluated = map(eval, expressions)
-    return all(evaluated)
-end
-
-function precompile_signatures(
-        M::Module;
-        submodules::Bool=SUBMODULES_DEFAULT,
-        split_unions=SPLIT_UNIONS_DEFAULT
-    )
-    return precompile_signatures([M]; submodules, split_unions)
-end
-
-"""
     write_directives(path, M::AbstractVector{Module}; split_unions::Bool=$SPLIT_UNIONS_DEFAULT, header=\$DEFAULT_WRITE_HEADER)
     write_directives(path, types::Vector{DataType}; header=\$DEFAULT_WRITE_HEADER)
 
@@ -169,3 +144,20 @@ function write_directives(
     write_directives(path, types; header)
 end
 precompile(write_directives, (String, Vector{Module}))
+
+"""
+    precompile_directives(M::Module)::String
+
+Return the path to generated `precompile` directives.
+Do not attempt to be clever and `eval` the directives directly, that will cause "incremental compilation fatally broken" errors.
+"""
+function precompile_directives(M::Module)::String
+    path = joinpath(pkgdir(M), "src", "_precompile.jl")
+    # Only write new directives during the precompilation stage.
+    if ccall(:jl_generating_output, Cint, ()) == 1
+        types = precompilables(M)
+        write_directives(path, types)
+    end
+    return path
+end
+

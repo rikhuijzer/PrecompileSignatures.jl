@@ -16,15 +16,12 @@ pkg> activate Foo
 Next, add the following somewhere in your code:
 
 ```julia
-using PrecompileSignatures: precompile_signatures
+using PrecompileSignatures: precompile_directives
 
-if ccall(:jl_generating_output, Cint, ()) == 1
-    precompile_signatures(Foo)
-end
+include(precompile_directives(Foo))
 ```
 
-This will call `precompile_signatures` during the precompilation phase.
-Inside `precompile_signatures`, `precompile` statements are generated and evaluated.
+This will generate extra `precompile` directives during the precompilation phase and `include` the generated file.
 
 ## How does this package work?
 
