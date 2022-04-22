@@ -48,3 +48,15 @@ Tuple{typeof(z), Any}
 ```
 
 In other words, this package cannot easily extract all types mentioned in the union in this case.
+
+## How dow does this package relate to SnoopCompile?
+
+Like this package, [SnoopCompile.jl](https://github.com/timholy/SnoopCompile.jl) can also generate precompile directives.
+Where this package does it by reading code and signatures, SnoopCompile runs code to find directives.
+Because SnoopCompile runs the code, it can find much more directives.
+However, the problem with running code is that it takes long.
+For example, to generate a lot of precompile directives in [Pluto.jl](https://github.com/fonsp/Pluto.jl), we could run all tests.
+This takes about 20 minutes.
+Conversely, this package takes about 20 seconds to generate directives for all modules in Pluto.
+In practise, this means that this package can re-generate the directives with each start of the package whereas SnoopCompile's directives have to be cached, that is, stored in the repository.
+
