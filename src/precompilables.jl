@@ -145,6 +145,8 @@ function write_directives(
 end
 precompile(write_directives, (String, Vector{Module}))
 
+_is_precompile_stage() = ccall(:jl_generating_output, Cint, ()) == 1
+
 """
     precompile_directives(M::Module)::String
 
@@ -152,9 +154,10 @@ Return the path to generated `precompile` directives.
 Do not attempt to be clever and `eval` the directives directly, that will cause "incremental compilation fatally broken" errors.
 """
 function precompile_directives(M::Module)::String
-    path = joinpath(pkgdir(M), "src", "_precompile.jl")
-    # Only write new directives during the precompilation stage.
-    if ccall(:jl_generating_output, Cint, ()) == 1
+    dir = get_scratch!(M, string(M))
+    if !isdir(dir) || _is_precompile_stage()
+        mkpath(dir)
+        path = joinpath(dir, "precompile.jl")
         types = precompilables(M)
         write_directives(path, types)
     end
