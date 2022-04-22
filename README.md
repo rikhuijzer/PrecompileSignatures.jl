@@ -5,12 +5,12 @@ This is a brute force way to reduce the time to first X.
 
 ## Usage
 
-Add this package to your package, say, `Foo`:
+Add this package to your package `Foo`:
 
 ```julia
 pkg> activate Foo
 
-pkg> add PrecompileSignatures
+(Foo) pkg> add PrecompileSignatures
 ```
 
 Next, add the following somewhere in your code:
