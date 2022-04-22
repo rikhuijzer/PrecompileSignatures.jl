@@ -9,7 +9,7 @@ _in_module(f::Function, M::Module) = typeof(f).name.module == M
 _in_module(M::Module) = f -> _in_module(f, M)
 
 "Return all functions defined in module `M`."
-function _module_functions(M::Module) # ::Vector{Function}
+function _module_functions(M::Module)::Vector{Function}
     allnames = names(M; all=true)
     filter!(x -> !(x in [:eval, :include]), allnames)
     properties = [getproperty(M, name) for name in allnames]
@@ -21,7 +21,7 @@ end
 _all_concrete(type::DataType)::Bool = isconcretetype(type)
 _all_concrete(types)::Bool = all(map(isconcretetype, types))
 
-_pairs(@nospecialize(args...)) = vcat(Base.product(args...)...)
+_pairs(args...) = vcat(Base.product(args...)...)
 
 function _unpack_union!(x::Union; out=[])
     push!(out, x.a)
@@ -29,6 +29,11 @@ function _unpack_union!(x::Union; out=[])
 end
 function _unpack_union!(x; out=[])
     push!(out, x)
+end
+
+function _split_unions_barrier(pairs)::Set{Tuple}
+    filter!(_all_concrete, pairs)
+    return Set(pairs)
 end
 
 """
@@ -39,8 +44,7 @@ Return multiple `Tuple`s containing only concrete types for each combination of 
 function _split_unions(sig::DataType)::Set{Tuple}
     method, types... = sig.parameters
     pairs = _pairs(map(_unpack_union!, types)...)
-    filter!(_all_concrete, pairs)
-    return Set(pairs)
+    return _split_unions_barrier(pairs)
 end
 
 """
@@ -55,7 +59,7 @@ function _directives_datatypes(sig::DataType, split_unions::Bool)::Vector{DataTy
     else
         return DataType[]
     end
-    return [Tuple{method, types...} for types in concrete_argument_types]
+    return DataType[Tuple{method, types...} for types in concrete_argument_types]
 end
 
 "Return all method signatures for function `f`."
