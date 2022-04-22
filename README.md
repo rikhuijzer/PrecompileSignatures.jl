@@ -75,7 +75,7 @@ Tuple{typeof(z), Any}
 
 In other words, this package cannot easily extract all types mentioned in the union in this case.
 
-## How dow does this package relate to SnoopCompile?
+## How dow does this package compare to SnoopCompile?
 
 Like this package, [SnoopCompile.jl](https://github.com/timholy/SnoopCompile.jl) can also generate precompile directives.
 Where this package does it by reading code and signatures, SnoopCompile runs code to find directives.
@@ -92,3 +92,4 @@ Unfortunately, in many cases, inference will run all over again even after some 
 For more information about this, see https://github.com/JuliaLang/julia/issues/38951#issuecomment-749153888 and the related discussions.
 This aspect is a work-in-progress.
 For example, a recent PR that got merged related to this is "Cache external CodeInstances" (https://github.com/JuliaLang/julia/pull/43990).
+With the great work that is done at the Julia-side, this package is expected to make a bigger difference over time.
