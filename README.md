@@ -79,7 +79,7 @@ Depends on the package.
 The more signatures a package has with concretely typed arguments, the more `precompile` directives can be added.
 Next, the better the types inside the methods can be infered, the more performance can be gained from adding the directives.
 As an indication, in this package the time for the first `@time @eval precompilables(PrecompileSignatures)` is reduced by 0.3 seconds (-15%) and 134 MiB allocations (-19%).
-In [`Pluto.jl`](https://github.com/fonsp/Pluto.jl), the compile time benchmark is 3 seconds faster (-3%) and 1.6 GiB allocations (-47%).
+In [`Pluto.jl`](https://github.com/fonsp/Pluto.jl), the compile time benchmark is 3 seconds faster (-3%) and 1.6 GiB allocations (-47%), see https://github.com/fonsp/Pluto.jl/pull/2054 for details.
 Both these numbers are obtained with Julia 1.8-beta3.
 
 ## How dow does this package compare to SnoopCompile?
