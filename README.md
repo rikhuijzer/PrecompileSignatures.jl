@@ -78,7 +78,7 @@ Depends on the package.
 The more signatures a package has with concretely typed arguments, the more `precompile` directives can be added.
 Next, the better the types inside the methods can be infered, the more performance can be gained from adding the directives.
 As an indication, in this package the time for the first `@time @eval precompilables(PrecompileSignatures)` is reduced by 0.3 seconds (-15%) and 134 MiB allocations (-19%).
-In [`Pluto.jl`](https://github.com/fonsp/Pluto.jl), the compile time benchmark is 3 seconds faster (-3%) and 1.6 GiB allocations (-47%), see https://github.com/fonsp/Pluto.jl/pull/2054 for details.
+In [`Pluto.jl`](https://github.com/fonsp/Pluto.jl), the compile time benchmark is 3 seconds faster (-3%) and 1.6 GiB allocations less (-47%), see https://github.com/fonsp/Pluto.jl/pull/2054 for details.
 Both these numbers are obtained with Julia 1.8-beta3.
 
 ## How dow does this package compare to SnoopCompile?
@@ -89,7 +89,7 @@ Because SnoopCompile runs the code, it can find much more directives.
 However, the problem with running code is that it takes long.
 For example, to generate a lot of precompile directives in [Pluto.jl](https://github.com/fonsp/Pluto.jl), we could run all tests.
 This takes about 20 minutes.
-Conversely, this package takes about 20 seconds to generate directives for all modules in Pluto.
+Conversely, this package takes about 6 seconds to generate directives for all modules in Pluto.
 In practise, this means that this package can re-generate the directives with each start of the package whereas SnoopCompile's directives have to be cached, that is, stored in the repository.
 
 ## Further notes
