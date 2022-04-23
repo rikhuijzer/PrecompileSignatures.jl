@@ -3,6 +3,7 @@ using PrecompileSignatures
 using Test
 
 const P = PrecompileSignatures
+const Config = P.Config
 
 module M
     a(x::Int) = x
@@ -15,6 +16,7 @@ end
 
 @test P._unpack_union!(Union{Float64, Int64, String, Symbol}) == [Float64, Int64, String, Symbol]
 
+type_conversions = P.TYPE_CONVERSIONS_DEFAULT
 sig = Tuple{M.a, Union{Int, Float64}, Union{Float32, String}}
 expected = Set([
           (Int64, Float32),
@@ -22,21 +24,37 @@ expected = Set([
           (Float64, Float32),
           (Float64, String)
       ])
-@test PrecompileSignatures._split_unions(sig) == expected
+@test PrecompileSignatures._split_unions(sig, type_conversions) == expected
 
-sig = Tuple{M.a, Union{Int, AbstractString}, Union{Float32, String}}
+sig = Tuple{M.a, Union{Int, Number}, Union{Float32, String}}
 expected = Set([
     (Int64, Float32),
     (Int64, String)
 ])
-@test PrecompileSignatures._split_unions(sig) == expected
+# @test PrecompileSignatures._split_unions(sig, type_conversions) == expected
 
-@test Set(P._directives_datatypes(sig, true)) == Set([
-    Tuple{M.a, Int64, Float32},
-    Tuple{M.a, Int64, String}
+sig = Tuple{M.a, Union{Int, AbstractString}, Union{Float32, String}}
+expected = Set([
+    (Int64, Float32),
+    (Int64, String),
+    (String, Float32),
+    (String, String)
 ])
-@test isempty(P._directives_datatypes(sig, false))
-@test P._directives_datatypes(Tuple{M.a, Int}, true) == [Tuple{M.a, Int}]
+@test PrecompileSignatures._split_unions(sig, type_conversions) == expected
+
+expected = Set([
+    (Int64, Float32),
+    (Int64, String)
+])
+@test PrecompileSignatures._split_unions(sig, Dict{DataType,DataType}()) == expected
+
+sig = Tuple{M.a, Union{String, Number}, Union{Float32, String}}
+@test Set(P._directives_datatypes(sig, Config())) == Set([
+    Tuple{M.a, String, Float32},
+    Tuple{M.a, String, String}
+])
+@test isempty(P._directives_datatypes(sig, Config(; split_unions=false)))
+@test P._directives_datatypes(Tuple{M.a, Int}, Config()) == [Tuple{M.a, Int}]
 
 @test Set(precompilables(M)) == Set([
     Tuple{typeof(Main.M.a), Int64},

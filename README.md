@@ -1,7 +1,6 @@
 # PrecompileSignatures.jl
 
 This package reads all method signatures in a package and generates precompile directives for any concrete signature that it can find.
-This is a brute force way to reduce the time to first X.
 
 ## Usage
 
