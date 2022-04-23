@@ -19,10 +19,9 @@ _in_module(M::Module) = f -> _in_module(f, M)
 function _module_functions(M::Module)::Vector{Function}
     allnames = names(M; all=true)
     filter!(x -> !(x in [:eval, :include]), allnames)
-    properties = [getproperty(M, name) for name in allnames]
-    functions = filter(_is_function, properties)
-    filter!(_in_module(M), functions)
-    return functions
+    properties = Any[getproperty(M, name) for name in allnames]
+    filter!(x -> _is_function(x) && _in_module(x, M), properties)
+    return properties
 end
 
 _all_concrete(type::DataType)::Bool = isconcretetype(type)

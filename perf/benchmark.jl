@@ -5,12 +5,12 @@ using BenchmarkTools: @benchmark
 using Pluto: Pluto
 using Profile: Profile, @profile
 using ProfileSVG: ProfileSVG
-using PrecompileSignatures: precompilables
+using PrecompileSignatures: precompile_directives
 using SnoopCompile: @snoopi_deep, flamegraph
 
 println("@snoopi_deep precompilables(Pluto):")
 let
-    tinf = @snoopi_deep precompilables(Pluto)
+    tinf = @snoopi_deep precompile_directives(Pluto)
     @show tinf
     fg = flamegraph(tinf)
     path = joinpath(@__DIR__, "compile.svg")
@@ -19,9 +19,9 @@ let
     println()
 end
 
-println("@profile precompilables(Pluto):")
+println("@profile precompile_directives(Pluto):")
 let
-    @profile precompilables(Pluto)
+    @profile precompile_directives(Pluto)
     data = Profile.fetch()
     fg = flamegraph(data)
     path = joinpath(@__DIR__, "profile.svg")
