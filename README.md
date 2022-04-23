@@ -18,7 +18,9 @@ Next, add the following somewhere in your code:
 ```julia
 using PrecompileSignatures: precompile_directives
 
-include(precompile_directives(Foo))
+if ccall(:jl_generating_output, Cint, ()) == 1
+    include(precompile_directives(Foo))
+end
 ```
 
 This will generate extra `precompile` directives during the precompilation phase and `include` the generated file.
@@ -70,6 +72,15 @@ Tuple{typeof(z), Any}
 ```
 
 In other words, this package cannot easily extract all types mentioned in the union in this case.
+
+## By how much does this package reduce the time to first X?
+
+Depends on the package.
+The more signatures a package has with concretely typed arguments, the more `precompile` directives can be added.
+Next, the better the types inside the methods can be infered, the more performance can be gained from adding the directives.
+As an indication, in this package the time for the first `@time @eval precompilables(PrecompileSignatures)` is reduced by 0.3 seconds (-15%) and 134 MiB allocations (-19%).
+In [`Pluto.jl`](https://github.com/fonsp/Pluto.jl), the compile time benchmark is 3 seconds faster (-3%) and 1.6 GiB allocations (-47%).
+Both these numbers are obtained with Julia 1.8-beta3.
 
 ## How dow does this package compare to SnoopCompile?
 
