@@ -11,3 +11,4 @@ docs/site/
 *.jl.mem
 
 perf/**.svg
+**/tmp.jl

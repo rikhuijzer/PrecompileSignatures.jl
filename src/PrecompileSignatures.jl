@@ -188,6 +188,7 @@ function write_directives(
     types = precompilables(M, config)
     return write_directives(path, types, config)
 end
+write_directives(path, M::Module, config=Config()) = write_directives(path, [M], config)
 
 """
     precompile_directives(M::Module, config::Config=Config())::String
