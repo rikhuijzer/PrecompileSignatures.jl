@@ -33,20 +33,21 @@ expected = Set([
 ])
 @test PrecompileSignatures._split_unions(sig, type_conversions) == expected
 
-sig = Tuple{M.a, Union{Int, AbstractString}, Union{Float32, String}}
+sig = Tuple{M.a, Union{AbstractString, Int}, Union{Float32, Symbol}}
 expected = Set([
-    (Int64, Float32),
-    (Int64, String),
     (String, Float32),
-    (String, String)
+    (String, Symbol),
+    (Int64, Float32),
+    (Int64, Symbol)
 ])
 @test PrecompileSignatures._split_unions(sig, type_conversions) == expected
 
 expected = Set([
     (Int64, Float32),
-    (Int64, String)
+    (Int64, Symbol)
 ])
-@test PrecompileSignatures._split_unions(sig, Dict{DataType,DataType}()) == expected
+type_conversions = Dict{DataType,DataType}()
+@test PrecompileSignatures._split_unions(sig, type_conversions) == expected
 
 sig = Tuple{M.a, Union{String, Number}, Union{Float32, String}}
 @test Set(P._directives_datatypes(sig, Config())) == Set([
