@@ -26,12 +26,12 @@ expected = Set([
       ])
 @test PrecompileSignatures._split_unions(sig, type_conversions) == expected
 
-sig = Tuple{M.a, Union{Int, Number}, Union{Float32, String}}
+sig = Tuple{M.a, Union{Symbol, Number}, Union{Float32, String}}
 expected = Set([
-    (Int64, Float32),
-    (Int64, String)
+    (Symbol, Float32),
+    (Symbol, String)
 ])
-# @test PrecompileSignatures._split_unions(sig, type_conversions) == expected
+@test PrecompileSignatures._split_unions(sig, type_conversions) == expected
 
 sig = Tuple{M.a, Union{Int, AbstractString}, Union{Float32, String}}
 expected = Set([
