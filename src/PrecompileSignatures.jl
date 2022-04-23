@@ -28,7 +28,10 @@ end
 _all_concrete(type::DataType)::Bool = isconcretetype(type)
 _all_concrete(types)::Bool = all(map(isconcretetype, types))
 
-_pairs(args...) = vcat(Base.product(args...)...)
+function _pairs(args)
+    # @show args
+    return vcat(Base.product(args...)...)
+end
 
 function _unpack_union!(x::Union; out=[])
     push!(out, x.a)
@@ -50,7 +53,7 @@ Return multiple `Tuple`s containing only concrete types for each combination of 
 """
 function _split_unions(sig::DataType)::Set{Tuple}
     method, types... = sig.parameters
-    pairs = _pairs(map(_unpack_union!, types)...)
+    pairs = _pairs(map(_unpack_union!, types))
     return _split_unions_barrier(pairs)
 end
 
