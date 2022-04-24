@@ -33,7 +33,7 @@ function _pairs(args)
     prod = Base.product(args...)
     # Using a loop instead of vcat(prod...) to avoid many specializations of vcat.
     out = Any[]
-    foreach(prod) do element
+    for element in prod
         # Using a vector instead of tuples to avoid specializations further on.
         vec = collect(element)
         push!(out, vec)
@@ -159,13 +159,20 @@ function precompilables(M::Vector{Module}, config::Config=Config())::Vector{Data
     if config.submodules
         M = _all_submodules(M)
     end
+    out = DataType[]
     types = map(M) do mod
         functions = _module_functions(mod)
         signatures = Iterators.flatten(map(_signatures, functions))
         directives = [_directives_datatypes(sig, config) for sig in signatures]
-        return collect(Iterators.flatten(directives))
+        # Avoiding `reduce(vcat, ...)` to avoid specializations.
+        for sig in signatures
+            directives_types = _directives_datatypes(sig, config)
+            for datatype in directives_types
+                push!(out, datatype)
+            end
+        end
     end
-    return reduce(vcat, types)
+    return out
 end
 
 function precompilables(M::Module, config::Config=Config())::Vector{DataType}

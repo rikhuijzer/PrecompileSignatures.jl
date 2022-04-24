@@ -11,6 +11,9 @@ using ProfileSVG: ProfileSVG
 using PrecompileSignatures: PrecompileSignatures, precompile_directives
 using SnoopCompile: @snoopr, @snoopi_deep, flamegraph, inclusive, inference_triggers, invalidation_trees, uinvalidated, staleinstances
 
+warmup(x) = x
+@time @eval warmup(1)
+
 @show VERSION
 
 mi_before = methodinstances(PrecompileSignatures)
@@ -63,6 +66,7 @@ if true
     # Displaying the total again since that's useful.
     println()
     display(tinf)
+    @time @eval precompile_directives(Pluto)
 end
 
 # Don't do print_tree(tinf). It's too much.
