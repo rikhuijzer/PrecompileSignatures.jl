@@ -1,5 +1,6 @@
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+MethodAnalysis = "85b6ec6f-f7df-4429-9514-a64bcd9ee824"
 Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
 PrecompileSignatures = "91cefc8d-f054-46dc-8f8c-26e11d7c5411"
 Profile = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"

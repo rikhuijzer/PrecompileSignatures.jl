@@ -1,12 +1,15 @@
 #
-# Run via `julia --project=perf perf/benchmark.jl`.
+# Run via `julia --startup-file=no --project=perf perf/benchmark.jl`.
 #
 using BenchmarkTools: @benchmark
+using MethodAnalysis: methodinstances
 using Pluto: Pluto
 using Profile: Profile, @profile
 using ProfileSVG: ProfileSVG
-using PrecompileSignatures: precompile_directives
+using PrecompileSignatures: PrecompileSignatures, precompile_directives
 using SnoopCompile: @snoopi_deep, flamegraph
+
+mi_before = methodinstances(PrecompileSignatures)
 
 println("@snoopi_deep precompilables(Pluto):")
 let
@@ -29,3 +32,9 @@ let
     println("Profile flamegraph saved at $path")
     println()
 end
+
+# Check for over-specializations.
+println("New methodinstances created when running PrecompileSignatures:")
+mi = methodinstances(PrecompileSignatures)
+new_mi = filter(!in(mi_before), mi)
+display(new_mi)

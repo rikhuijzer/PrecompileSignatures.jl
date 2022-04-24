@@ -39,9 +39,8 @@ function _unpack_union!(x; out=[])
     push!(out, x)
 end
 
-function _split_unions_barrier(pairs)::Set{Tuple}
+function _split_unions_barrier(@nospecialize pairs)::Set{Tuple}
     filtered = filter(_all_concrete, pairs)
-    # @show filtered
     return Set(filtered)
 end
 
