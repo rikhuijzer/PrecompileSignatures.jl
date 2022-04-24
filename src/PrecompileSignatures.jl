@@ -145,7 +145,14 @@ function _signatures(f::Function)::Vector{DataType}
 end
 
 function _all_submodules(M::Vector{Module})::Vector{Module}
-    return collect(Iterators.flatten(map(submodules, M)))
+    out = Module[]
+    for m in M
+        S = submodules(m)
+        for s in S
+            push!(out, s)
+        end
+    end
+    return out
 end
 
 """
@@ -162,13 +169,13 @@ function precompilables(M::Vector{Module}, config::Config=Config())::Vector{Data
     out = DataType[]
     types = map(M) do mod
         functions = _module_functions(mod)
-        signatures = Iterators.flatten(map(_signatures, functions))
-        directives = [_directives_datatypes(sig, config) for sig in signatures]
-        # Avoiding `reduce(vcat, ...)` to avoid specializations.
-        for sig in signatures
-            directives_types = _directives_datatypes(sig, config)
-            for datatype in directives_types
-                push!(out, datatype)
+        for func in functions
+            signatures = _signatures(func)
+            for sig in signatures
+                directives_types = _directives_datatypes(sig, config)
+                for datatype in directives_types
+                    push!(out, datatype)
+                end
             end
         end
     end
