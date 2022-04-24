@@ -10,18 +10,23 @@ function _is_macro(f::Function)
     return contains(text, "macro with")
 end
 
-_is_function(x) = x isa Function && !_is_macro(x)
-
+_is_function(x) = x isa Function
 _in_module(f::Function, M::Module) = typeof(f).name.module == M
-_in_module(M::Module) = f -> _in_module(f, M)
+_is_interesting(x, M::Module) = _is_function(x) && !_is_macro(x) && _in_module(x, M)
 
 "Return all functions defined in module `M`."
 function _module_functions(M::Module)::Vector{Function}
     allnames = names(M; all=true)
-    filter!(x -> !(x in [:eval, :include]), allnames)
-    properties = Any[getproperty(M, name) for name in allnames]
-    filter!(x -> _is_function(x) && _in_module(x, M), properties)
-    return properties
+    out = Function[]
+    for name in allnames
+        if !(name in [:eval, :include])
+            x = getproperty(M, name)
+            if _is_interesting(x, M)
+                push!(out, x)
+            end
+        end
+    end
+    return out
 end
 
 _all_concrete(type::DataType)::Bool = isconcretetype(type)
@@ -125,23 +130,25 @@ Each returned `DataType` is ready to be passed to `precompile`.
 function _directives_datatypes(sig::DataType, config::Config)::Vector{DataType}
     method, types... = sig.parameters
     _all_concrete(types) && return [sig]
-    concrete_argument_types = if config.split_unions
-        _split_unions(sig, config.type_conversions)
+    if config.split_unions
+        concrete_argument_types = _split_unions(sig, config.type_conversions)
+        return DataType[Tuple{method, types...} for types in concrete_argument_types]
     else
         return DataType[]
     end
-    return DataType[Tuple{method, types...} for types in concrete_argument_types]
 end
 
 "Return all method signatures for function `f`."
 function _signatures(f::Function)::Vector{DataType}
-    sigs = map(methods(f)) do method
+    out = DataType[]
+    for method in methods(f)
         sig = method.sig
         # Ignoring parametric types for now.
-        sig isa UnionAll ? nothing : sig
+        if !(sig isa UnionAll)
+            push!(out, sig)
+        end
     end
-    filter!(!isnothing, sigs)
-    return sigs
+    return out
 end
 
 function _all_submodules(M::Vector{Module})::Vector{Module}

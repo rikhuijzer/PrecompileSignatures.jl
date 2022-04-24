@@ -2,7 +2,7 @@
 # Run via `julia --startup-file=no --project=perf perf/benchmark.jl`.
 #
 using AbstractTrees: print_tree
-using BenchmarkTools: @benchmark
+using BenchmarkTools: @benchmark, @btime
 using Cthulhu: ascend
 using MethodAnalysis: methodinstances
 using Pluto: Pluto
@@ -66,7 +66,7 @@ if true
     # Displaying the total again since that's useful.
     println()
     display(tinf)
-    @time @eval precompile_directives(Pluto)
+    @btime precompile_directives(Pluto)
 end
 
 # Don't do print_tree(tinf). It's too much.
