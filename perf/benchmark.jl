@@ -7,12 +7,23 @@ using Pluto: Pluto
 using Profile: Profile, @profile
 using ProfileSVG: ProfileSVG
 using PrecompileSignatures: PrecompileSignatures, precompile_directives
-using SnoopCompile: @snoopi_deep, flamegraph
+using SnoopCompile: @snoopr, @snoopi_deep, flamegraph, invalidation_trees, uinvalidated, staleinstances
+
+@show VERSION
 
 mi_before = methodinstances(PrecompileSignatures)
 
-println("@snoopi_deep precompilables(Pluto):")
-let
+if true
+    println("Check for invalidations:")
+    invalidations = @snoopr precompile_directives(Pluto)
+    @show length(uinvalidated(invalidations))
+    trees = invalidation_trees(invalidations)
+    display(trees)
+    println()
+end
+
+if false
+    println("Check tinf:")
     tinf = @snoopi_deep precompile_directives(Pluto)
     @show tinf
     fg = flamegraph(tinf)
@@ -22,8 +33,8 @@ let
     println()
 end
 
-println("@profile precompile_directives(Pluto):")
-let
+if false
+    println("@profile precompile_directives(Pluto):")
     @profile precompile_directives(Pluto)
     data = Profile.fetch()
     fg = flamegraph(data)
