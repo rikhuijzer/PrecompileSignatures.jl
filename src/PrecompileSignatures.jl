@@ -27,8 +27,18 @@ end
 _all_concrete(type::DataType)::Bool = isconcretetype(type)
 _all_concrete(types)::Bool = all(map(isconcretetype, types))
 
+# With loop: @btime PrecompileSignatures._pairs([1:200, 1:10, 1:10]) takes 690.020 μs.
+# With vcat: @btime PrecompileSignatures._pairs([1:200, 1:10, 1:10]) takes 1.193 ms.
 function _pairs(args)
-    return vcat(Base.product(args...)...)
+    prod = Base.product(args...)
+    # Using a loop instead of vcat(prod...) to avoid many specializations of vcat.
+    out = Any[]
+    foreach(prod) do element
+        # Using a vector instead of tuples to avoid specializations further on.
+        vec = collect(element)
+        push!(out, vec)
+    end
+    return out
 end
 
 function _unpack_union!(x::Union; out=[])

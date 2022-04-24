@@ -16,47 +16,53 @@ end
 
 @test P._unpack_union!(Union{Float64, Int64, String, Symbol}) == [Float64, Int64, String, Symbol]
 
+PrecompileSignatures._pairs([[1, 2], [3, 4]]) == [
+    [1, 3],
+    [2, 3],
+    [1, 4],
+    [2, 4]
+]
+
+PrecompileSignatures._pairs([[1, 2], [3], [5, 6]]) == [
+    [1, 3, 5],
+    [2, 3, 5],
+    [1, 3, 6],
+    [2, 3, 6]
+]
+
 args = [[Float64], [Float32, String]]
-expected = Tuple{DataType, DataType}[(Float64, Float32), (Float64, String)]
-@test PrecompileSignatures._pairs(args) == expected
-
-args = [[Float64, Int64], [Float32, String]]
-expected = Tuple{DataType, DataType}[(Float64, Float32), (Int64, Float32), (Float64, String), (Int64, String)]
-@test PrecompileSignatures._pairs(args) == expected
-
-args = [[Float64, Int64], [Float32, String], [String]]
-expected = Tuple{DataType, DataType, DataType}[(Float64, Float32, String), (Int64, Float32, String), (Float64, String, String), (Int64, String, String)]
+expected = Any[DataType[Float64, Float32], DataType[Float64, String]]
 @test PrecompileSignatures._pairs(args) == expected
 
 type_conversions = P.TYPE_CONVERSIONS_DEFAULT
 sig = Tuple{M.a, Union{Int, Float64}, Union{Float32, String}}
 expected = Set([
-          (Int64, Float32),
-          (Int64, String),
-          (Float64, Float32),
-          (Float64, String)
-      ])
+        [Int64, Float32],
+        [Int64, String],
+        [Float64, Float32],
+        [Float64, String]
+    ])
 @test PrecompileSignatures._split_unions(sig, type_conversions) == expected
 
 sig = Tuple{M.a, Union{Symbol, Number}, Union{Float32, String}}
 expected = Set([
-    (Symbol, Float32),
-    (Symbol, String)
+    [Symbol, Float32],
+    [Symbol, String]
 ])
 @test PrecompileSignatures._split_unions(sig, type_conversions) == expected
 
 sig = Tuple{M.a, Union{AbstractString, Int}, Union{Float32, Symbol}}
 expected = Set([
-    (String, Float32),
-    (String, Symbol),
-    (Int64, Float32),
-    (Int64, Symbol)
+    [String, Float32],
+    [String, Symbol],
+    [Int64, Float32],
+    [Int64, Symbol]
 ])
 @test PrecompileSignatures._split_unions(sig, type_conversions) == expected
 
 expected = Set([
-    (Int64, Float32),
-    (Int64, Symbol)
+    [Int64, Float32],
+    [Int64, Symbol]
 ])
 type_conversions = Dict{DataType,DataType}()
 @test PrecompileSignatures._split_unions(sig, type_conversions) == expected
