@@ -10,9 +10,9 @@ function _is_macro(f::Function)
     return contains(text, "macro with")
 end
 
-_is_function(x) = x isa Function
+_is_function(x::Any) = x isa Function
 _in_module(f::Function, M::Module) = typeof(f).name.module == M
-_is_interesting(x, M::Module) = _is_function(x) && !_is_macro(x) && _in_module(x, M)
+_is_interesting(x::Any, M::Module) = _is_function(x) && !_is_macro(x) && _in_module(x, M)
 
 "Return all functions defined in module `M`."
 function _module_functions(M::Module)::Vector{Function}
@@ -49,11 +49,11 @@ function _pairs(args)
     return out
 end
 
-function _unpack_union!(x::Union; out=[])
+function _unpack_union!(x::Union; out=Any[])
     push!(out, x.a)
     return _unpack_union!(x.b; out)
 end
-function _unpack_union!(x; out=[])
+function _unpack_union!(x::Any; out=Any[])
     push!(out, x)
 end
 
