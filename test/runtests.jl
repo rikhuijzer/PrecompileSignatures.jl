@@ -16,6 +16,14 @@ end
 
 @test P._unpack_union!(Union{Float64, Int64, String, Symbol}) == [Float64, Int64, String, Symbol]
 
+args = [[Float64], [Float32, String]]
+expected = Tuple{DataType, DataType}[(Float64, Float32), (Float64, String)]
+@test PrecompileSignatures._pairs(args) == expected
+
+args = [[Float64, Int64], [Float32, String]]
+expected = Tuple{DataType, DataType}[(Float64, Float32), (Int64, Float32), (Float64, String), (Int64, String)]
+@test PrecompileSignatures._pairs(args) == expected
+
 type_conversions = P.TYPE_CONVERSIONS_DEFAULT
 sig = Tuple{M.a, Union{Int, Float64}, Union{Float32, String}}
 expected = Set([

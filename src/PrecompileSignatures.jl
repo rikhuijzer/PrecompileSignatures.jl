@@ -39,7 +39,7 @@ function _unpack_union!(x; out=[])
     push!(out, x)
 end
 
-function _split_unions_barrier(@nospecialize pairs)::Set{Tuple}
+function _split_unions_barrier(@nospecialize pairs)
     filtered = filter(_all_concrete, pairs)
     return Set(filtered)
 end
@@ -54,11 +54,11 @@ function _convert_type(type::Any, type_conversions::Dict{DataType,DataType})
 end
 
 """
-    _split_unions(sig::DataType) -> Set{Tuple}
+    _split_unions(sig::DataType) -> Set
 
 Return multiple `Tuple`s containing only concrete types for each combination of concrete types that can be found.
 """
-function _split_unions(sig::DataType, type_conversions::Dict{DataType,DataType})::Set{Tuple}
+function _split_unions(sig::DataType, type_conversions::Dict{DataType,DataType})::Set
     method, types... = sig.parameters
     pruned = map(types) do type
         unpacked = _unpack_union!(type)::Vector{Any}

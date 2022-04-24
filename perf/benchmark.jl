@@ -1,19 +1,21 @@
 #
 # Run via `julia --startup-file=no --project=perf perf/benchmark.jl`.
 #
+using AbstractTrees: print_tree
 using BenchmarkTools: @benchmark
+using Cthulhu: ascend
 using MethodAnalysis: methodinstances
 using Pluto: Pluto
 using Profile: Profile, @profile
 using ProfileSVG: ProfileSVG
 using PrecompileSignatures: PrecompileSignatures, precompile_directives
-using SnoopCompile: @snoopr, @snoopi_deep, flamegraph, invalidation_trees, uinvalidated, staleinstances
+using SnoopCompile: @snoopr, @snoopi_deep, flamegraph, inclusive, inference_triggers, invalidation_trees, uinvalidated, staleinstances
 
 @show VERSION
 
 mi_before = methodinstances(PrecompileSignatures)
 
-if true
+if false
     println("Check for invalidations:")
     invalidations = @snoopr precompile_directives(Pluto)
     @show length(uinvalidated(invalidations))
@@ -22,7 +24,7 @@ if true
     println()
 end
 
-if false
+tinf = if true
     println("Check tinf:")
     tinf = @snoopi_deep precompile_directives(Pluto)
     @show tinf
@@ -31,6 +33,9 @@ if false
     ProfileSVG.save(path, fg)
     println("Compilation flamegraph saved at $path")
     println()
+    tinf
+else
+    nothing
 end
 
 if false
@@ -44,8 +49,25 @@ if false
     println()
 end
 
-# Check for over-specializations.
-println("New methodinstances created when running PrecompileSignatures:")
-mi = methodinstances(PrecompileSignatures)
-new_mi = filter(!in(mi_before), mi)
-display(new_mi)
+if false
+    println("New methodinstances created inside `PrecompileSignatures` during execution:")
+    mi = methodinstances(PrecompileSignatures)
+    new_mi = filter(!in(mi_before), mi)
+    display(new_mi)
+end
+
+if true
+    println("New methodinstances created everywhere during execution:")
+    sorted_children = sort(tinf.children; by=inclusive, rev=false)
+    display(sorted_children)
+    # Displaying the total again since that's useful.
+    println()
+    display(tinf)
+end
+
+# Don't do print_tree(tinf). It's too much.
+# To go really in depth use `ascend(itrigs)` after figuring out how to do it XD.
+# Doing ascend(itrigs[n]) works but is too inconvenient.
+# itrigs = inference_triggers(tinf)
+# ascend(itrigs)
+
