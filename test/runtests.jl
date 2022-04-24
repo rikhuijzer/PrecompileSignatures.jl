@@ -73,3 +73,13 @@ mktemp() do path, io
     @test contains(text, "machine-generated")
     @test contains(text, "precompile(Tuple{typeof(Main.M.a), Int64})")
 end
+
+try
+    1 + "foo"
+catch
+    error = P._error_text()
+    @test contains(error, "no method matching")
+    @test contains(error, "Stacktrace:\n")
+end
+
+

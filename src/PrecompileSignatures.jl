@@ -188,19 +188,48 @@ function write_directives(
 end
 write_directives(path, M::Module, config=Config()) = write_directives(path, [M], config)
 
+function _precompile_path(M::Module)
+    dir = get_scratch!(M, string(M))
+    mkpath(dir)
+    return joinpath(dir, "_precompile.jl")
+end
+
+function _error_text()::String
+    if VERSION >= v"1.7.0-"
+        exc, bt = last(Base.current_exceptions())
+    else
+        exc, bt = last(Base.catch_stack())
+    end
+    error = sprint(Base.showerror, exc, bt)
+    return error
+end
+
 """
     precompile_directives(M::Module, config::Config=Config())::String
 
 Return the path to a file containing generated `precompile` directives.
-Do not attempt to be clever and `eval` the directives directly, that will cause "incremental compilation fatally broken" errors.
+
+!!! note
+    This package needs to write the signatures to a file and then include that.
+    Evaluating the directives directly via `eval` will cause "incremental compilation fatally broken" errors.
 """
 function precompile_directives(M::Module, config::Config=Config())::String
-    dir = get_scratch!(M, string(M))
-    mkpath(dir)
-    path = joinpath(dir, "precompile.jl")
-    types = precompilables(M, config)
-    write_directives(path, types, config)
-    return path
+    # This has to be wrapped in a try-catch to avoid other packages to fail completely.
+    try
+        path = _precompile_path(M)
+        types = precompilables(M, config)
+        write_directives(path, types, config)
+        return path
+    catch
+        error = _error_text()
+        @warn """Generating precompile directives failed
+            $error
+            """
+        # Write empty file so that `include(precompile_directives(...))` succeeds.
+        path, _ = mktemp()
+        write(path, "")
+        return path
+    end
 end
 
 # Include generated `precompile` directives.
