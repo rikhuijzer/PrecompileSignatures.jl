@@ -37,11 +37,14 @@ _all_concrete(types)::Bool = all(map(isconcretetype, types))
 function _pairs(args)
     prod = Base.product(args...)
     # Using a loop instead of vcat(prod...) to avoid many specializations of vcat.
-    out = Any[]
+    out = Vector[]
     for element in prod
         # Using a vector instead of tuples to avoid specializations further on.
-        vec = collect(element)
-        push!(out, vec)
+        datatypes = Any[]
+        for x in element
+            push!(datatypes, x)
+        end
+        push!(out, datatypes)
     end
     return out
 end
@@ -55,7 +58,12 @@ function _unpack_union!(x; out=[])
 end
 
 function _split_unions_barrier(@nospecialize pairs)
-    filtered = filter(_all_concrete, pairs)
+    filtered = Vector[]
+    for datatypes in pairs
+        if _all_concrete(datatypes)
+            push!(filtered, datatypes)
+        end
+    end
     return Set(filtered)
 end
 
@@ -75,13 +83,19 @@ Return multiple `Tuple`s containing only concrete types for each combination of 
 """
 function _split_unions(sig::DataType, type_conversions::Dict{DataType,DataType})::Set
     method, types... = sig.parameters
-    pruned = map(types) do type
+    concrete_types = Any[]
+    for type in types
         unpacked = _unpack_union!(type)::Vector{Any}
-        converted = Any[_convert_type(type, type_conversions) for type in unpacked]
-        filtered = filter(isconcretetype, converted)
-        return filtered
+        converted_types = Any[]
+        for type in unpacked
+            converted = _convert_type(type, type_conversions)
+            if isconcretetype(converted)
+                push!(converted_types, converted)
+            end
+        end
+        push!(concrete_types, converted_types)
     end
-    pairs = _pairs(pruned)
+    pairs = _pairs(concrete_types)
     return _split_unions_barrier(pairs)
 end
 
