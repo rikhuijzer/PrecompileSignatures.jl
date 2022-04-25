@@ -35,14 +35,26 @@ _all_concrete(types)::Bool = all(map(isconcretetype, types))
 """
     _product(args)
 
-Return the Carthesian product of a multiple vectors.
+Return the Cartesian product of a multiple vectors.
 
 This method is created to avoid `Base.product(args...)` because that one returns tuples which require lots of specializations.
 Thanks to https://stackoverflow.com/questions/533905.
 """
 function _product(args)
     if !isempty(args)
-        return [[items; item] for items in _product(args[1:end-1]) for item in args[end]]
+        prod = []
+        for item in args[end]
+            for items in _product(args[1:end-1])
+                combined = []
+                for item in items
+                    push!(combined, item)
+                end
+                push!(combined, item)
+                push!(prod, combined)
+            end
+        end
+        return prod
+        # return [[items; item] for items in _product(args[1:end-1]) for item in args[end]]
     else
         # Make sure that this is iterable or the inner loop doesn't run.
         return [[]]

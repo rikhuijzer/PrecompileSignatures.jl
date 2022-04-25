@@ -31,7 +31,7 @@ PrecompileSignatures._pairs([[1, 2], [3], [5, 6]]) == [
 ]
 
 args = [[Float64], [Float32, String]]
-expected = Any[DataType[Float64, Float32], DataType[Float64, String]]
+expected = Any[Any[Float64, Float32], Any[Float64, String]]
 @test PrecompileSignatures._pairs(args) == expected
 
 type_conversions = P.TYPE_CONVERSIONS_DEFAULT
