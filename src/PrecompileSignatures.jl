@@ -19,7 +19,7 @@ function _module_functions(M::Module)::Vector{Function}
     allnames = names(M; all=true)
     out = Function[]
     for name in allnames
-        if !(name in [:eval, :include])
+        if !(name in [:eval, :include, :_precompile_])
             x = getproperty(M, name)
             if _is_interesting(x, M)
                 push!(out, x)
@@ -32,10 +32,27 @@ end
 _all_concrete(type::DataType)::Bool = isconcretetype(type)
 _all_concrete(types)::Bool = all(map(isconcretetype, types))
 
+"""
+    _product(args)
+
+Return the Carthesian product of a multiple vectors.
+
+This method is created to avoid `Base.product(args...)` because that one returns tuples which require lots of specializations.
+Thanks to https://stackoverflow.com/questions/533905.
+"""
+function _product(args)
+    if !isempty(args)
+        return [[items; item] for items in _product(args[1:end-1]) for item in args[end]]
+    else
+        # Make sure that this is iterable or the inner loop doesn't run.
+        return [[]]
+    end
+end
+
 # With loop: @btime PrecompileSignatures._pairs([1:200, 1:10, 1:10]) takes 690.020 μs.
 # With vcat: @btime PrecompileSignatures._pairs([1:200, 1:10, 1:10]) takes 1.193 ms.
 function _pairs(args)
-    prod = Base.product(args...)
+    prod = _product(args)
     # Using a loop instead of vcat(prod...) to avoid many specializations of vcat.
     out = Vector[]
     for element in prod
