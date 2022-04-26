@@ -1,6 +1,6 @@
 # PrecompileSignatures.jl
 
-This package reads all method signatures in a package and generates precompile directives for any concrete signature that it can find.
+This is an experimental package which reads all method signatures in a package and generates precompile directives for any concrete signature that it can find.
 
 ## Usage
 
@@ -81,7 +81,42 @@ As an indication, in this package the time for the first `@time @eval precompila
 In [`Pluto.jl`](https://github.com/fonsp/Pluto.jl), the compile time benchmark is 3 seconds faster (-3%) and 1.6 GiB allocations less (-47%), see https://github.com/fonsp/Pluto.jl/pull/2054 for details.
 Both these numbers are obtained with Julia 1.8-beta3.
 
-## How dow does this package compare to SnoopCompile?
+## How does this package compare to running code during the precompilation phase?
+
+Some package nowadays run code during the precompilation phase.
+For example, at the time of writing [`Makie.jl`]() runs
+```julia
+## src/precompiles.jl
+function _precompile_()
+    ccall(:jl_generating_output, Cint, ()) == 1 || return nothing
+    f, ax1, pl = scatter(1:4)
+    f, ax2, pl = lines(1:4)
+    f = Figure()
+    Axis(f[1,1])
+    return
+end
+
+## src/Makie.jl
+if Base.VERSION >= v"1.4.2"
+    include("precompiles.jl")
+    _precompile_()
+end
+```
+What happens here is that the code such as `lines(1:4)` is executed during the precompilation phase.
+While running the code, Julia will compile everything it needs to run the code.
+
+In contrast, this package will generate and call `precompile(lines, (UnitRange{Int},))`.
+The benefit is that this package will not actually run the code.
+However because of that, it will also not be able to precompile everything.
+Some types cannot be infered without actually running the code.
+That's why the TTFX performance of this package lies somewhere in between actually calling the code and not calling the code nor calling `precompile`.
+
+So firstly, the strength of this package is mostly to automatically decide what to precompile.
+You don't need to decide on what code to run beforehand.
+Secondly, the strenght of this package lies in codebases where the code cannot easily be called during the precompilation phase.
+For example, for code with side-effects such as disk or network operations.
+
+## How does this package compare to SnoopCompile?
 
 Like this package, [SnoopCompile.jl](https://github.com/timholy/SnoopCompile.jl) can also generate precompile directives.
 Where this package does it by reading code and signatures, SnoopCompile runs code to find directives.
