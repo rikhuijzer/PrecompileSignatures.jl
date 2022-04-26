@@ -268,16 +268,6 @@ function _precompile_path(M::Module)
     return joinpath(dir, "_precompile.jl")
 end
 
-function _error_text()::String
-    if VERSION >= v"1.7.0-"
-        exc, bt = last(Base.current_exceptions())
-    else
-        exc, bt = last(Base.catch_stack())
-    end
-    error = sprint(Base.showerror, exc, bt)
-    return error
-end
-
 """
     precompile_directives(M::Module, config::Config=Config())::String
 
@@ -294,11 +284,8 @@ function precompile_directives(M::Module, config::Config=Config())::String
         types = precompilables(M, config)
         write_directives(path, types, config)
         return path
-    catch
-        error = _error_text()
-        @warn """Generating precompile directives failed
-            $error
-            """
+    catch e
+        @warn "Generating precompile directives failed" exception=(e, catch_backtrace())
         # Write empty file so that `include(precompile_directives(...))` succeeds.
         path, _ = mktemp()
         write(path, "")
