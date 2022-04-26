@@ -93,22 +93,3 @@ mktemp() do path, io
     @test contains(text, "precompile(Tuple{typeof(Main.M.a), Int")
 end
 
-function _error_text()::String
-    if VERSION >= v"1.7.0-"
-        exc, bt = last(Base.current_exceptions())
-    else
-        exc, bt = last(Base.catch_stack())
-    end
-    error = sprint(Base.showerror, exc, bt)
-    return error
-end
-
-try
-    1 + "foo"
-catch
-    error = _error_text()
-    @test contains(error, "no method matching")
-    @test contains(error, "Stacktrace:\n")
-end
-
-
