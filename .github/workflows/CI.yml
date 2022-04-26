@@ -17,15 +17,26 @@ jobs:
       matrix:
         version:
           - '1.6'
-          - '1' # Latest stable release.
+          - '1'
           - 'nightly'
         os:
           - ubuntu-latest
+        arch:
+          - x64
+        include:
+          - os: windows-latest
+            version: '1'
+            arch: x86
+        include:
+          - os: macOS-latest
+            version: '1'
+            arch: x64
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
