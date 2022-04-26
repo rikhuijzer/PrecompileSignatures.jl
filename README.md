@@ -83,8 +83,9 @@ Both these numbers are obtained with Julia 1.8-beta3.
 
 ## How does this package compare to running code during the precompilation phase?
 
-Some package nowadays run code during the precompilation phase.
+Some packages nowadays run code during the precompilation phase.
 For example, at the time of writing, [`Makie.jl`](https://github.com/JuliaPlots/Makie.jl) runs
+
 ```julia
 ## src/precompiles.jl
 function _precompile_()
@@ -102,17 +103,17 @@ if Base.VERSION >= v"1.4.2"
     _precompile_()
 end
 ```
-What happens here is that the code such as `lines(1:4)` is executed during the precompilation phase.
-While running the code, Julia will compile everything it needs to run the code.
 
-In contrast, this package will generate and call `precompile(lines, (UnitRange{Int},))`.
-The benefit is that this package will not actually run the code.
-However because of that, it will also not be able to precompile everything.
-Some types cannot be infered without actually running the code.
+What happens here is that the code such as `lines(1:4)` is executed during the precompilation phase.
+While running the code, Julia will compile all methods that it needs to run the code.
+
+In contrast, `PrecompileSignatures.jl` would call precompile directives such as `precompile(lines, (UnitRange{Int},))`.
+The benefit is that this will not actually run the code.
+However because of that, it will also not be able to precompile everything since some types cannot be infered when going through methods recursively.
 That's why the TTFX performance of this package lies somewhere in between actually calling the code and not calling the code nor calling `precompile`.
 
 So firstly, the strength of this package is mostly to automatically decide what to precompile.
-You don't need to decide on what code to run beforehand.
+You don't need to manually figure out what code to run.
 Secondly, the strenght of this package lies in codebases where the code cannot easily be called during the precompilation phase.
 For example, for code with side-effects such as disk or network operations.
 
