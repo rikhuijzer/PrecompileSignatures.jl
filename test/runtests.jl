@@ -90,7 +90,7 @@ mktemp() do path, io
     types = precompilables(M)
     text = write_directives(path, types)
     @test contains(text, "machine-generated")
-    @test contains(text, "precompile(Tuple{typeof(Main.M.a), Int})")
+    @test contains(text, "precompile(Tuple{typeof(Main.M.a), Int")
 end
 
 try
