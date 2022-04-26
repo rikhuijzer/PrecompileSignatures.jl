@@ -36,7 +36,7 @@ expected = Any[Any[Float64, Float32], Any[Float64, String]]
 
 type_conversions = P.TYPE_CONVERSIONS_DEFAULT
 sig = Tuple{M.a, Union{Int, Float64}, Union{Float32, String}}
-expected = Set(Any[
+expected = Set(Vector[
         Any[Int64, Float32],
         Any[Int64, String],
         Any[Float64, Float32],
@@ -83,6 +83,7 @@ sig = Tuple{M.a, Union{String, Number}, Union{Float32, String}}
 
 types = precompilables(PlutoRunner)
 @test 40 < length(types)
+# Test whether the precompile directives are correct. Super important.
 @test all(precompile.(types))
 
 mktemp() do path, io
