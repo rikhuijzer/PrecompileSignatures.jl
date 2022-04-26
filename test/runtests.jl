@@ -14,7 +14,7 @@ end
 
 @test P._module_functions(M) == [M.a, M.b, M.c]
 
-@test P._unpack_union!(Union{Float64, Int64, String, Symbol}) == [Float64, Int64, String, Symbol]
+@test P._unpack_union!(Union{Float64, Int, String, Symbol}) == [Float64, Int, String, Symbol]
 
 PrecompileSignatures._pairs([[1, 2], [3, 4]]) == [
     [1, 3],
@@ -37,8 +37,8 @@ expected = Any[Any[Float64, Float32], Any[Float64, String]]
 type_conversions = P.TYPE_CONVERSIONS_DEFAULT
 sig = Tuple{M.a, Union{Int, Float64}, Union{Float32, String}}
 expected = Set(Vector[
-        Any[Int64, Float32],
-        Any[Int64, String],
+        Any[Int, Float32],
+        Any[Int, String],
         Any[Float64, Float32],
         Any[Float64, String]
     ])
@@ -55,14 +55,14 @@ sig = Tuple{M.a, Union{AbstractString, Int}, Union{Float32, Symbol}}
 expected = Set([
     [String, Float32],
     [String, Symbol],
-    [Int64, Float32],
-    [Int64, Symbol]
+    [Int, Float32],
+    [Int, Symbol]
 ])
 @test PrecompileSignatures._split_unions(sig, type_conversions) == expected
 
 expected = Set([
-    [Int64, Float32],
-    [Int64, Symbol]
+    [Int, Float32],
+    [Int, Symbol]
 ])
 type_conversions = Dict{DataType,DataType}()
 @test PrecompileSignatures._split_unions(sig, type_conversions) == expected
@@ -76,7 +76,7 @@ sig = Tuple{M.a, Union{String, Number}, Union{Float32, String}}
 @test P._directives_datatypes(Tuple{M.a, Int}, Config()) == [Tuple{M.a, Int}]
 
 @test Set(precompilables(M)) == Set([
-    Tuple{typeof(Main.M.a), Int64},
+    Tuple{typeof(Main.M.a), Int},
     Tuple{typeof(Main.M.b), Float64},
     Tuple{typeof(Main.M.b), Float32}
 ])
@@ -90,7 +90,7 @@ mktemp() do path, io
     types = precompilables(M)
     text = write_directives(path, types)
     @test contains(text, "machine-generated")
-    @test contains(text, "precompile(Tuple{typeof(Main.M.a), Int64})")
+    @test contains(text, "precompile(Tuple{typeof(Main.M.a), Int})")
 end
 
 try
