@@ -36,7 +36,7 @@ expected = Any[Any[Float64, Float32], Any[Float64, String]]
 
 type_conversions = P.TYPE_CONVERSIONS_DEFAULT
 sig = Tuple{M.a, Union{Int, Float64}, Union{Float32, String}}
-expected = Set([
+expected = Set(Any[
         Any[Int64, Float32],
         Any[Int64, String],
         Any[Float64, Float32],
