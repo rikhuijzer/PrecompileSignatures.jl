@@ -84,7 +84,7 @@ Both these numbers are obtained with Julia 1.8-beta3.
 ## How does this package compare to running code during the precompilation phase?
 
 Some package nowadays run code during the precompilation phase.
-For example, at the time of writing [`Makie.jl`]() runs
+For example, at the time of writing, [`Makie.jl`](https://github.com/JuliaPlots/Makie.jl) runs
 ```julia
 ## src/precompiles.jl
 function _precompile_()
