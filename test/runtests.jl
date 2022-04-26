@@ -37,10 +37,10 @@ expected = Any[Any[Float64, Float32], Any[Float64, String]]
 type_conversions = P.TYPE_CONVERSIONS_DEFAULT
 sig = Tuple{M.a, Union{Int, Float64}, Union{Float32, String}}
 expected = Set([
-        [Int64, Float32],
-        [Int64, String],
-        [Float64, Float32],
-        [Float64, String]
+        Any[Int64, Float32],
+        Any[Int64, String],
+        Any[Float64, Float32],
+        Any[Float64, String]
     ])
 @test PrecompileSignatures._split_unions(sig, type_conversions) == expected
 
