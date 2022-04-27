@@ -20,9 +20,14 @@ function _module_functions(M::Module)::Vector{Function}
     out = Function[]
     for name in allnames
         if !(name in [:eval, :include, :_precompile_])
-            x = getproperty(M, name)
-            if _is_interesting(x, M)
-                push!(out, x)
+            try
+                x = getproperty(M, name)
+                if _is_interesting(x, M)
+                    push!(out, x)
+                end
+            catch
+                # Caused by method ambiguities or exports without a associated function.
+                continue
             end
         end
     end
