@@ -114,7 +114,7 @@ That's why the TTFX performance of this package lies somewhere in between actual
 
 So firstly, the strength of this package is mostly to automatically decide what to precompile.
 You don't need to manually figure out what code to run.
-Secondly, the strenght of this package lies in codebases where the code cannot easily be called during the precompilation phase.
+Secondly, the strength of this package lies in codebases where the code cannot easily be called during the precompilation phase.
 For example, for code with side-effects such as disk or network operations.
 
 ## How does this package compare to SnoopCompile?
