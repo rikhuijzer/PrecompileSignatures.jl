@@ -3,7 +3,7 @@ module PrecompileSignatures
 using Documenter.Utilities: submodules
 using Scratch: get_scratch!
 
-export precompilables, precompile_directives, write_directives
+export precompilables, precompile_directives, write_directives, precompile_signatures
 
 function _is_macro(f::Function)
     text = sprint(show, MIME"text/plain"(), f)
@@ -298,9 +298,15 @@ function precompile_directives(M::Module, config::Config=Config())::String
     end
 end
 
-# Include generated `precompile` directives.
-if ccall(:jl_generating_output, Cint, ()) == 1
-    include(precompile_directives(PrecompileSignatures))
+# TODO: Do same as Revise.jl. Call preocmpile in a macro or special function.
+function precompile_signatures(M::Module)
+    if ccall(:jl_generating_output, Cint, ()) == 1
+        1+"foo"
+        include(precompile_directives(M))
+    end
 end
+
+# Include generated `precompile` directives for this module.
+precompile_signatures(PrecompileSignatures)
 
 end # module
