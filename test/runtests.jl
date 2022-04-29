@@ -75,19 +75,19 @@ sig = Tuple{M.a, Union{String, Number}, Union{Float32, String}}
 @test isempty(P._directives_datatypes(sig, Config(; split_unions=false)))
 @test P._directives_datatypes(Tuple{M.a, Int}, Config()) == [Tuple{M.a, Int}]
 
-@test Set(precompilables(M)) == Set([
+@test Set(P.precompilables(M)) == Set([
     Tuple{typeof(Main.M.a), Int},
     Tuple{typeof(Main.M.b), Float64},
     Tuple{typeof(Main.M.b), Float32}
 ])
 
-types = precompilables(PlutoRunner)
+types = P.precompilables(PlutoRunner)
 @test 40 < length(types)
 # Test whether the precompile directives are correct. Super important.
 @test all(precompile.(types))
 
 mktemp() do path, io
-    types = precompilables(M)
+    types = P.precompilables(M)
     text = write_directives(path, types)
     @test contains(text, "machine-generated")
     @test contains(text, "precompile(Tuple{typeof(Main.M.a), Int")

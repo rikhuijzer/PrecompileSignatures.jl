@@ -3,7 +3,7 @@ module PrecompileSignatures
 using Documenter.Utilities: submodules
 using Scratch: get_scratch!
 
-export precompilables, precompile_directives, write_directives, @precompile_module
+export precompile_directives, write_directives, @precompile_module
 
 function _is_macro(f::Function)
     text = sprint(show, MIME"text/plain"(), f)
@@ -242,18 +242,6 @@ function precompilables(M::Module, config::Config=Config())::Vector{DataType}
 end
 
 """
-    _precompile(argt::Type)
-
-Compile the given `argt` such as `Tuple{typeof(sum), Vector{Int}}`.
-This function is called by the generated directives.
-"""
-function _precompile(@nospecialize(argt::Type))
-    # Not calling `precompile` since that specializes on types before #43990 (Julia ≤ 1.8).
-    ret = ccall(:jl_compile_hint, Int32, (Any,), argt) != 0
-    return ret
-end
-
-"""
     write_directives(path::AbstractString, types::Vector{DataType}, config::Config=Config())
     write_directives(path::AbstractString, M::AbstractVector{Module}, config::Config=Config())
 
@@ -303,7 +291,6 @@ Return the path to a file containing generated `precompile` directives.
 !!! note
     This package needs to write the signatures to a file and then include that.
     Evaluating the directives directly via `eval` will cause "incremental compilation fatally broken" errors.
-    Calling `include` in this package also doesn't work.
 """
 function precompile_directives(M::Module, config::Config=Config())::String
     # This has to be wrapped in a try-catch to avoid other packages to fail completely.
@@ -321,11 +308,36 @@ function precompile_directives(M::Module, config::Config=Config())::String
     end
 end
 
+"""
+    _precompile_type(argt::Type)
+
+Compile the given `argt` such as `Tuple{typeof(sum), Vector{Int}}`.
+"""
+function _precompile_type(@nospecialize(argt::Type))
+    # Not calling `precompile` since that specializes on types before #43990 (Julia ≤ 1.8).
+    ret = ccall(:jl_compile_hint, Int32, (Any,), argt) != 0
+    return ret
+end
+
+"This function is called from within `@precompile_module`."
+function _precompile_module(M::Module, config::Config=Config())
+    types = precompilables(M, config)
+
+    for type in types
+        _precompile_type(type)
+    end
+end
+
+"""
+    @precompile_module(M)
+
+Precompile the concrete signatures in module `M`.
+"""
 macro precompile_module(M::Symbol)
     esc(quote
         if ccall(:jl_generating_output, Cint, ()) == 1
             try
-                include($precompile_directives($M))
+                $PrecompileSignatures._precompile_module($M)
             catch e
                 msg = "Generating and including the `precompile` directives failed"
                 @warn msg exception=(e, catch_backtrace())
