@@ -86,11 +86,4 @@ types = P.precompilables(PlutoRunner)
 # Test whether the precompile directives are correct. Super important.
 @test all(precompile.(types))
 
-mktemp() do path, io
-    types = P.precompilables(M)
-    text = write_directives(path, types)
-    @test contains(text, "machine-generated")
-    @test contains(text, "precompile(Tuple{typeof(Main.M.a), Int")
-end
-
 @test !isempty(only(methods(PrecompileSignatures._test_precompiled)).specializations)
