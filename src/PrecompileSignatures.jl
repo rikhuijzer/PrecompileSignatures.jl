@@ -242,21 +242,15 @@ function precompilables(M::Module, config::Config=Config())::Vector{DataType}
 end
 
 """
-    try_precompile(argt::Type)
+    _precompile(argt::Type)
 
-Compile the given argt such as `Tuple{typeof(sum), Vector{Int}}`.
-Wrapped in a try-catch to avoid breaking packages.
+Compile the given `argt` such as `Tuple{typeof(sum), Vector{Int}}`.
 This function is called by the generated directives.
 """
-function try_precompile(@nospecialize(argt::Type))
-    try
-        # Not calling `precompile` since that specializes on types before #43990 (Julia ≤ 1.8).
-        ret = ccall(:jl_compile_hint, Int32, (Any,), argt) != 0
-        return ret
-    catch
-        @warn "Failed to precompile $argt"
-        return false
-    end
+function _precompile(@nospecialize(argt::Type))
+    # Not calling `precompile` since that specializes on types before #43990 (Julia ≤ 1.8).
+    ret = ccall(:jl_compile_hint, Int32, (Any,), argt) != 0
+    return ret
 end
 
 """
@@ -270,14 +264,14 @@ function write_directives(
         types::Vector{DataType},
         config::Config=Config()
     )::String
-    directives = ["    try_precompile($t)" for t in types]
+    directives = ["    _precompile($t)" for t in types]
     joined = string(config.header, join(directives, '\n'))
     text = """
         $(config.header)
         using PrecompileSignatures: PrecompileSignatures
 
         let
-            try_precompile = PrecompileSignatures.try_precompile
+            _precompile = PrecompileSignatures._precompile
 
             $joined
         end
@@ -330,7 +324,12 @@ end
 macro precompile_module(M::Symbol)
     esc(quote
         if ccall(:jl_generating_output, Cint, ()) == 1
-            include($precompile_directives($M))
+            try
+                include($precompile_directives($M))
+            catch e
+                msg = "Generating and including the `precompile` directives failed"
+                @warn msg exception=(e, catch_backtrace())
+            end
         end
     end)
 end
