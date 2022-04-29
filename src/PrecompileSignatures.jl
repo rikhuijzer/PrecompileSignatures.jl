@@ -3,7 +3,7 @@ module PrecompileSignatures
 using Documenter.Utilities: submodules
 using Scratch: get_scratch!
 
-export precompilables, precompile_directives, write_directives, precompile_signatures
+export precompilables, precompile_directives, write_directives, precompile_module
 
 function _is_macro(f::Function)
     text = sprint(show, MIME"text/plain"(), f)
@@ -242,6 +242,24 @@ function precompilables(M::Module, config::Config=Config())::Vector{DataType}
 end
 
 """
+    try_precompile(argt::Type)
+
+Compile the given argt such as `Tuple{typeof(sum), Vector{Int}}`.
+Wrapped in a try-catch to avoid breaking packages.
+This function is called by the generated directives.
+"""
+function try_precompile(@nospecialize(argt::Type))
+    try
+        # Not calling `precompile` since that specializes on types before #43990 (Julia ≤ 1.8).
+        ret = ccall(:jl_compile_hint, Int32, (Any,), argt) != 0
+        return ret
+    catch
+        @warn "Failed to precompile $argt"
+        return false
+    end
+end
+
+"""
     write_directives(path::AbstractString, types::Vector{DataType}, config::Config=Config())
     write_directives(path::AbstractString, M::AbstractVector{Module}, config::Config=Config())
 
@@ -252,8 +270,18 @@ function write_directives(
         types::Vector{DataType},
         config::Config=Config()
     )::String
-    directives = ["precompile($t)" for t in types]
-    text = string(config.header, join(directives, '\n'))
+    directives = ["    try_precompile($t)" for t in types]
+    joined = string(config.header, join(directives, '\n'))
+    text = """
+        $(config.header)
+        using PrecompileSignatures: PrecompileSignatures
+
+        let
+            try_precompile = PrecompileSignatures.try_precompile
+
+            $joined
+        end
+        """
     write(path, text)
     return text
 end
@@ -298,15 +326,13 @@ function precompile_directives(M::Module, config::Config=Config())::String
     end
 end
 
-# TODO: Do same as Revise.jl. Call preocmpile in a macro or special function.
-function precompile_signatures(M::Module)
+function precompile_module(M::Module)
     if ccall(:jl_generating_output, Cint, ()) == 1
-        1+"foo"
         include(precompile_directives(M))
     end
 end
 
 # Include generated `precompile` directives for this module.
-precompile_signatures(PrecompileSignatures)
+precompile_module(PrecompileSignatures)
 
 end # module
