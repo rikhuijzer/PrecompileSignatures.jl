@@ -3,7 +3,7 @@ module PrecompileSignatures
 using Documenter.Utilities: submodules
 using Scratch: get_scratch!
 
-export precompilables, precompile_directives, write_directives, precompile_module
+export precompilables, precompile_directives, write_directives, @precompile_module
 
 function _is_macro(f::Function)
     text = sprint(show, MIME"text/plain"(), f)
@@ -309,6 +309,7 @@ Return the path to a file containing generated `precompile` directives.
 !!! note
     This package needs to write the signatures to a file and then include that.
     Evaluating the directives directly via `eval` will cause "incremental compilation fatally broken" errors.
+    Calling `include` in this package also doesn't work.
 """
 function precompile_directives(M::Module, config::Config=Config())::String
     # This has to be wrapped in a try-catch to avoid other packages to fail completely.
@@ -326,13 +327,15 @@ function precompile_directives(M::Module, config::Config=Config())::String
     end
 end
 
-function precompile_module(M::Module)
-    if ccall(:jl_generating_output, Cint, ()) == 1
-        include(precompile_directives(M))
-    end
+macro precompile_module(M::Symbol)
+    esc(quote
+        if ccall(:jl_generating_output, Cint, ()) == 1
+            include($precompile_directives($M))
+        end
+    end)
 end
 
 # Include generated `precompile` directives for this module.
-precompile_module(PrecompileSignatures)
+@precompile_module(PrecompileSignatures)
 
 end # module

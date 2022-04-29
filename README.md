@@ -17,11 +17,12 @@ Next, add the following somewhere in your code:
 ```julia
 module Foo
 
-using PrecompileSignatures: precompile_signatures
+using PrecompileSignatures: @precompile_module
 
 [...]
 
-precompile_signatures(Foo)
+# Include generated `precompile` directives for this module.
+@precompile_module(Foo)
 
 end # module
 ```
