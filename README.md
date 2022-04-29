@@ -12,7 +12,8 @@ pkg> activate Foo
 (Foo) pkg> add PrecompileSignatures
 ```
 
-Next, add the following somewhere in your code:
+Next, add `@precompile_module(Foo)` somewhere after your module's logic.
+For example:
 
 ```julia
 module Foo
