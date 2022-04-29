@@ -93,3 +93,4 @@ mktemp() do path, io
     @test contains(text, "precompile(Tuple{typeof(Main.M.a), Int")
 end
 
+@test !isempty(only(methods(PrecompileSignatures._test_precompiled)).specializations)
