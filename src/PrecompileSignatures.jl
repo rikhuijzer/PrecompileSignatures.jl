@@ -236,7 +236,7 @@ end
 Compile the given `argt` such as `Tuple{typeof(sum), Vector{Int}}`.
 """
 function _precompile_type(@nospecialize(argt::Type))
-    # Not calling `precompile` since that specializes on types before #43990 (Julia ≤ 1.8).
+    # Not calling `precompile` since that specializes on types before #43990 (Julia < 1.8).
     ret = ccall(:jl_compile_hint, Int32, (Any,), argt) != 0
     return ret
 end
@@ -247,6 +247,7 @@ function _precompile_module(M::Module, config::Config=Config())
     for type in types
         _precompile_type(type)
     end
+    return nothing
 end
 
 """
