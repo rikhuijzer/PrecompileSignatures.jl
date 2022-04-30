@@ -2,7 +2,7 @@ module PrecompileSignatures
 
 using Documenter.Utilities: submodules
 
-export precompile_directives, write_directives, @precompile_module
+export precompile_directives, write_directives, @precompile_signatures
 
 function _is_macro(f::Function)
     text = sprint(show, MIME"text/plain"(), f)
@@ -241,8 +241,8 @@ function _precompile_type(@nospecialize(argt::Type))
     return ret
 end
 
-"This function is called from within `@precompile_module`."
-function _precompile_module(M::Module, config::Config=Config())
+"This function is called from within `@precompile_signatures`."
+function _precompile_signatures(M::Module, config::Config=Config())
     types = precompilables(M, config)
     for type in types
         _precompile_type(type)
@@ -251,15 +251,15 @@ function _precompile_module(M::Module, config::Config=Config())
 end
 
 """
-    @precompile_module(M)
+    @precompile_signatures(M)
 
 Precompile the concrete signatures in module `M`.
 """
-macro precompile_module(M::Symbol)
+macro precompile_signatures(M::Symbol)
     esc(quote
         if ccall(:jl_generating_output, Cint, ()) == 1
             try
-                $PrecompileSignatures._precompile_module($M)
+                $PrecompileSignatures._precompile_signatures($M)
             catch e
                 msg = "Generating and including the `precompile` directives failed"
                 @warn msg exception=(e, catch_backtrace())
@@ -274,6 +274,6 @@ end
 _test_precompiled(x::Int) = 3
 
 # Include generated `precompile` directives for this module.
-@precompile_module(PrecompileSignatures)
+@precompile_signatures(PrecompileSignatures)
 
 end # module

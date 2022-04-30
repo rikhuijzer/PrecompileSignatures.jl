@@ -12,23 +12,21 @@ pkg> activate Foo
 (Foo) pkg> add PrecompileSignatures
 ```
 
-Next, add `@precompile_module(Foo)` somewhere after your module's logic.
+Next, add `@precompile_signatures(Foo)` somewhere after your module's logic.
 For example:
 
 ```julia
 module Foo
 
-using PrecompileSignatures: @precompile_module
+using PrecompileSignatures: @precompile_signatures
 
 [...]
 
-# Include generated `precompile` directives for this module.
-@precompile_module(Foo)
+# Generate and run `precompile` directives.
+@precompile_signatures(Foo)
 
 end # module
 ```
-
-This will generate extra `precompile` directives during the precompilation phase and `include` the generated file.
 
 ## How does this package work?
 
