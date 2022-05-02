@@ -1,7 +1,7 @@
 name = "PrecompileSignatures"
 uuid = "91cefc8d-f054-46dc-8f8c-26e11d7c5411"
 authors = ["Rik Huijzer <t.h.huijzer@rug.nl>"]
-version = "3.0.0"
+version = "3.0.1"
 
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
