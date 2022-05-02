@@ -1,6 +1,6 @@
 # PrecompileSignatures.jl
 
-This is an experimental package which reads all method signatures in a package and generates precompile directives for any concrete signature that it can find.
+This package reads all method signatures in a package and generates precompile directives for any concrete signature that it can find.
 
 ## Usage
 
