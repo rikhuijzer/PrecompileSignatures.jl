@@ -257,13 +257,13 @@ Precompile the concrete signatures in module `M`.
 """
 macro precompile_signatures(M::Symbol)
     esc(quote
-        if ccall(:jl_generating_output, Cint, ()) == 1
-            try
+        try
+            if ccall(:jl_generating_output, Cint, ()) == 1
                 $PrecompileSignatures._precompile_signatures($M)
-            catch e
-                msg = "Generating and including the `precompile` directives failed"
-                @warn msg exception=(e, catch_backtrace())
             end
+        catch e
+            msg = "Generating and including the `precompile` directives failed"
+            @warn msg exception=(e, catch_backtrace())
         end
     end)
 end
