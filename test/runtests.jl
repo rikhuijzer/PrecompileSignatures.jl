@@ -10,7 +10,7 @@ module M
     b(x::Any) = x
     b(x::Union{Float64,Float32}) = b(x)
     c(x::T) where {T<:AbstractString} = x
-    d(x::IO) = x
+    d(x::IO, y::AbstractString) = x
 end
 
 @test P._module_functions(M) == [M.a, M.b, M.c, M.d]
@@ -80,7 +80,7 @@ sig = Tuple{M.a, Union{String, Number}, Union{Float32, String}}
     Tuple{typeof(Main.M.a), Int},
     Tuple{typeof(Main.M.b), Float64},
     Tuple{typeof(Main.M.b), Float32},
-    Tuple{typeof(Main.M.d), IOStream}
+    Tuple{typeof(Main.M.d), IOStream, String}
 ])
 
 types = P.precompilables(PlutoRunner)
