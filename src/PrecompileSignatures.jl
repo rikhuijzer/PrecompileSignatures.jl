@@ -134,7 +134,10 @@ end
 
 const SUBMODULES_DEFAULT = true
 const SPLIT_UNIONS_DEFAULT = true
-const TYPE_CONVERSIONS_DEFAULT = Dict{DataType,DataType}(AbstractString => String)
+const TYPE_CONVERSIONS_DEFAULT = Dict{DataType,DataType}(
+        AbstractString => String,
+        IO => IOStream
+    )
 
 """
     Config(
