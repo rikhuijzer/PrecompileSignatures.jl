@@ -1,8 +1,27 @@
 module PrecompileSignatures
 
-using Documenter.Utilities: submodules
-
 export precompile_directives, write_directives, @precompile_signatures
+
+# Taken from https://github.com/JuliaDocs/Documenter.jl/blob/1fcf1de5b0dd3f45a3c17af3d18776a456fe6a12/src/Utilities/Utilities.jl#L213-L231=
+function _submodules(modules::Vector{Module})
+    out = Set{Module}()
+    for each in modules
+        _submodules(each, out)
+    end
+    out
+end
+function _submodules(root::Module, seen = Set{Module}())
+    push!(seen, root)
+    for name in names(root, all=true)
+        if Base.isidentifier(name) && isdefined(root, name) && !Base.isdeprecated(root, name)
+            object = getfield(root, name)
+            if isa(object, Module) && !(object in seen) && parentmodule(object::Module) == root
+                _submodules(object, seen)
+            end
+        end
+    end
+    return seen
+end
 
 function _is_macro(f::Function)
     text = sprint(show, MIME"text/plain"(), f)
@@ -194,7 +213,7 @@ end
 function _all_submodules(M::Vector{Module})::Vector{Module}
     out = Module[]
     for m in M
-        S = submodules(m)
+        S = _submodules(m)
         for s in S
             push!(out, s)
         end
