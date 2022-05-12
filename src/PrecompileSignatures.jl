@@ -263,13 +263,20 @@ function _precompile_type(@nospecialize(argt::Type))
     return ret
 end
 
-"This function is called from within `@precompile_signatures`."
+"""
+Precompile all concrete signatures inside `M` and return whether all precompile directives were valid.
+This function is called from within `@precompile_signatures`.
+"""
 function _precompile_signatures(M::Module, config::Config=Config())
     types = precompilables(M, config)
+    all_success = true
     for type in types
-        _precompile_type(type)
+        ret = _precompile_type(type)
+        if !ret
+            all_success = false
+        end
     end
-    return nothing
+    return all_success
 end
 
 """

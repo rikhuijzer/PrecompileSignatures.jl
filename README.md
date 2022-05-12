@@ -132,6 +132,24 @@ This takes about 20 minutes.
 Conversely, this package takes about 6 seconds to generate directives for all modules in Pluto.
 In practise, this means that this package can re-generate the directives with each start of the package whereas SnoopCompile's directives have to be cached, that is, stored in the repository.
 
+## How can I see what signatures this package creates?
+
+Use
+```julia
+PrecompileSignatures.precompilables(Foo)
+```
+where `Foo` is the name of your package.
+
+## How can I see whether the created signatures are valid?
+
+By default, this package doesn't verify the `precompile` directives to avoid breaking precompilation in worst-case scenarios.
+To verify the directives for debugging purposes, use
+```julia
+types = PrecompileSignatures.precompilables(Foo)
+@assert all(precompile.(types))
+```
+where `Foo` is the name of your package.
+
 ## Further notes
 
 Unfortunately, in many cases, inference will run all over again even after some method has been "precompiled".
